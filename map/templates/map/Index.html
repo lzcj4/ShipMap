@@ -29,6 +29,26 @@
 </head>
 <body>
 <div id="container"></div>
+<div id="myPageTop">
+    <table>
+        <tr>
+            <td>
+                <label>按关键字搜索：</label>
+            </td>
+            <td class="column2">
+                <label>左击获取经纬度：</label>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input type="text" placeholder="请输入关键字进行搜索" id="tipinput">
+            </td>
+            <td class="column2">
+                <input type="text" readonly="true" id="lnglat">
+            </td>
+        </tr>
+    </table>
+</div>
 <div class='button-group' style="background-color: #0d9bf2;right: 20px">
     <input type="checkbox" onclick="toggleScale(this)"/>比例尺
     <input type="checkbox" id="toolbar" onclick="toggleToolBar(this)"/>工具条
@@ -42,7 +62,12 @@
 <script>
     map = new AMap.Map("container", {
         resizeEnable: true,
-        zoom: 15
+        zoom: 13
+    });
+
+    //为地图注册click事件获取鼠标点击出的经纬度坐标
+    var clickEventListener = map.on('click', function (e) {
+        document.getElementById("lnglat").value = e.lnglat.getLng() + ',' + e.lnglat.getLat()
     });
     map.plugin('AMap.Geolocation', function () {
         var geolocation = new AMap.Geolocation({
@@ -59,30 +84,31 @@
             zoomToAccuracy: true      //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
         });
         map.addControl(geolocation);
-        geolocation.getCurrentPosition();
-        geolocation.getCurrentPosition(function (geoResult) {
-            new AMap.Marker({
-                map: map,
-                position: geoResult.position,
-                icon: new AMap.Icon({
-                    size: new AMap.Size(40, 50),  //图标大小
-                    image: "http://webapi.amap.com/theme/v1.3/images/newpc/way_btn2.png",
-                    imageOffset: new AMap.Pixel(0, -60)
-                })
-            });
+        geolocation.getCurrentPosition(function (status, geoResult) {
+            {#                        new AMap.Marker({#}
+            {#                            map: map,#}
+            {#                            position: geoResult.position,#}
+            {#                            icon: new AMap.Icon({#}
+            {#                                size: new AMap.Size(40, 50),  //图标大小#}
+            {#                                image: "http://webapi.amap.com/theme/v1.3/images/newpc/way_btn2.png",#}
+            {#                                imageOffset: new AMap.Pixel(0, -60)#}
+            {#                            })#}
+            {#                        });#}
+            addMarker([geoResult.position.getLng(), geoResult.position.getLat()], 0)
+            addMarker([geoResult.position.getLng() + 0.001, geoResult.position.getLat() +0.001], 1)
             console.log(geoResult.position)
         });
     });
-{#    new AMap.Marker({#}
-{#        map: map,#}
-{#        position: {{ gps }},#}
-{#        icon: new AMap.Icon({#}
-{#            size: new AMap.Size(40, 50),  //图标大小#}
-{#            image: "http://webapi.amap.com/theme/v1.3/images/newpc/way_btn2.png",#}
-            {#            image: "http://127.0.0.1:8000/static/images/ship.png" ,#}
-{#            imageOffset: new AMap.Pixel(0, -60)#}
-{#        })#}
-{#    });#}
+
+
+    function addMarker(pos, color) {
+        marker = new AMap.Marker({
+            icon: color == 0 ? "http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png" :
+                "http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",
+            position: pos
+        });
+        marker.setMap(map);
+    }
 
     var scale = new AMap.Scale({
         visible: false
