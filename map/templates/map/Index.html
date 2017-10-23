@@ -1,0 +1,211 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>船舶北方定位</title>
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+    <script src="http://cache.amap.com/lbs/static/es5.min.js"></script>
+    <script src="http://webapi.amap.com/maps?v=1.4.0&key=e74bfa8a52be17be2435ebfa02081c79&&plugin=AMap.Scale,AMap.OverView,AMap.ToolBar"></script>
+    <script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
+
+    <style>
+        html,
+        body,
+        #container {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+        }
+
+        #myIcon {
+            background: orange;
+            width: 20px;
+            height: 60px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<div class='button-group' style="background-color: #0d9bf2;right: 20px">
+    <input type="checkbox" onclick="toggleScale(this)"/>比例尺
+    <input type="checkbox" id="toolbar" onclick="toggleToolBar(this)"/>工具条
+    <input type="checkbox" id="toolbarDirection" disabled onclick="toggleToolBarDirection(this)"/>工具条方向盘
+    <input type="checkbox" id="toolbarRuler" disabled onclick="toggleToolBarRuler(this)"/>工具条标尺
+    <input type="checkbox" id="overview" onclick="toggleOverViewShow(this)"/>显示鹰眼
+    <input type="checkbox" id="overviewOpen" disabled onclick="toggleOverViewOpen(this)"/>展开鹰眼
+</div>
+
+{% load static %}
+<img src="/static/images/ship.png"  alt="上海鲜花港 - 郁金香" />
+<script>
+    map = new AMap.Map("container", {
+        resizeEnable: true,
+        zoom: 15,
+        center: {{ gps }}
+    });
+
+    new AMap.Marker({
+        map: map,
+        position: {{ gps }},
+        icon: new AMap.Icon({
+            size: new AMap.Size(40, 50),  //图标大小
+            image: "http://webapi.amap.com/theme/v1.3/images/newpc/way_btn2.png",
+{#            image: "http://127.0.0.1:8000/static/images/ship.png" ,#}
+            imageOffset: new AMap.Pixel(0, -60)
+        })
+    });
+    var scale = new AMap.Scale({
+        visible: false
+    });
+    var toolBar = new AMap.ToolBar({
+        visible: false
+    });
+    var overView = new AMap.OverView({
+        visible: false
+    });
+
+    map.addControl(scale);
+    map.addControl(toolBar);
+    map.addControl(overView);
+
+    function toggleScale(checkbox) {
+        if (checkbox.checked) {
+            scale.show();
+        } else {
+            scale.hide();
+        }
+    }
+
+    function toggleToolBar(checkbox) {
+        if (checkbox.checked) {
+            showToolBar();
+            showToolBarDirection();
+            showToolBarRuler();
+        } else {
+            hideToolBar();
+            hideToolBarDirection();
+            hideToolBarRuler();
+        }
+    }
+
+    function toggleToolBarDirection(checkbox) {
+        if (checkbox.checked) {
+            toolBar.showDirection()
+        } else {
+            toolBar.hideDirection()
+        }
+    }
+
+    function toggleToolBarRuler(checkbox) {
+        if (checkbox.checked) {
+            toolBar.showRuler();
+        } else {
+            toolBar.hideRuler();
+        }
+    }
+
+    function toggleOverViewShow(checkbox) {
+        if (checkbox.checked) {
+            overView.show();
+            document.getElementById('overviewOpen').disabled = false;
+        } else {
+            overView.hide();
+            document.getElementById('overviewOpen').disabled = true;
+        }
+    }
+
+    function toggleOverViewOpen(checkbox) {
+        if (checkbox.checked) {
+            overView.open();
+        }
+        else {
+            overView.close();
+        }
+    }
+
+    function showToolBar() {
+        document.getElementById('toolbar').checked = true;
+        document.getElementById('toolbarDirection').disabled = false;
+        document.getElementById('toolbarRuler').disabled = false;
+        toolBar.show();
+    }
+
+    function hideToolBar() {
+        document.getElementById('toolbar').checked = false;
+        document.getElementById('toolbarDirection').disabled = true;
+        document.getElementById('toolbarRuler').disabled = true;
+        toolBar.hide();
+    }
+
+    function showToolBarDirection() {
+        document.getElementById('toolbarDirection').checked = true;
+        toolBar.showDirection();
+    }
+
+    function hideToolBarDirection() {
+        document.getElementById('toolbarDirection').checked = false;
+        toolBar.hideDirection();
+    }
+
+    function showToolBarRuler() {
+        document.getElementById('toolbarRuler').checked = true;
+        toolBar.showRuler();
+    }
+
+    function hideToolBarRuler() {
+        document.getElementById('toolbarRuler').checked = false;
+        toolBar.hideRuler();
+    }
+
+    AMapUI.loadUI((['overlay/AwesomeMarker', 'overlay/SimpleMarker'],
+        function (AwesomeMarker, SimpleMarker) {
+            var center = map.getCenter();
+            new AwesomeMarker({
+                //设置awesomeIcon
+                awesomeIcon: "ship",
+                iconLabel: {
+                    style: {
+                        color: SimpleMarker.getBuiltInIconStyles()[0],
+                        fontSize: '14px'
+                    }
+                },
+
+                //图标
+                iconStyle: SimpleMarker.getBuiltInIconStyles()[0],
+
+                map: map,
+                position: center,
+                title: 'awesomeIcon :' + "ship"
+
+            });
+
+            {#        new SimpleMarker({#}
+            {#            iconLabel: '1',#}
+            {#            //自定义图标地址#}
+            {#            iconStyle:#}
+            {#                {#}
+            {#                    src: 'http://fontawesome.io/icon/ship/',#}
+            {#                    style: {#}
+            {#                        width: '20px',#}
+            {#                        height: '30px'#}
+            {#                    }#}
+            {#                },#}
+            {#            //设置基点偏移#}
+            {#            offset: new AMap.Pixel(-19, -60),#}
+            {#            map: map,#}
+            {#            showPositionPoint: true,#}
+            {#            position: center,#}
+            {#            zIndex: 100#}
+        }));
+
+    AMap.plugin(['AMap.ToolBar'], function () {
+        map.addControl(new AMap.ToolBar({
+            map: map
+        }));
+    });
+</script>
+</body>
+</html>
