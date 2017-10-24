@@ -15,8 +15,9 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 
+from map import views
+
 app_name = "map"
 urlpatterns = [
-    url(r'^$', include('map.urls')),
-    # url(r'^$', views.index, name="index"),
+     url(r'^$', views.index, name="index"),
 ]

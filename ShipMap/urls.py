@@ -17,10 +17,10 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-import map.views
 
 urlpatterns = [
-    url(r'^$', map.views.index, name="index"),
+    # url(r'^$', map.views.index, name="index"),
+    url(r'^$', include('map.urls')),
     url(r'^admin/', admin.site.urls),
 ]
 urlpatterns += staticfiles_urlpatterns()

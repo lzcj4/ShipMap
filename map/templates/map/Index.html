@@ -28,7 +28,9 @@
     </style>
 </head>
 <body>
+<img src="/static/images/ship.png" style="visibility: collapse"/>
 <div id="container"></div>
+
 <div id="myPageTop">
     <table>
         <tr>
@@ -95,7 +97,7 @@
             {#                            })#}
             {#                        });#}
             addMarker([geoResult.position.getLng(), geoResult.position.getLat()], 0)
-            addMarker([geoResult.position.getLng() + 0.001, geoResult.position.getLat() +0.001], 1)
+            addMarker([geoResult.position.getLng() + 0.001, geoResult.position.getLat() + 0.001], 1)
             console.log(geoResult.position)
         });
     });
@@ -105,7 +107,8 @@
         marker = new AMap.Marker({
             icon: color == 0 ? "http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png" :
                 "http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",
-            position: pos
+            position: pos,
+            title: "测试"
         });
         marker.setMap(map);
     }
