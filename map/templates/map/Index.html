@@ -54,14 +54,14 @@
         </tr>
     </table>
 </div>
-<div class='button-group' style="background-color: #0d9bf2;right: 20px">
-    <input type="checkbox" onclick="toggleScale(this)"/>比例尺
-    <input type="checkbox" id="toolbar" onclick="toggleToolBar(this)"/>工具条
-    <input type="checkbox" id="toolbarDirection" disabled onclick="toggleToolBarDirection(this)"/>工具条方向盘
-    <input type="checkbox" id="toolbarRuler" disabled onclick="toggleToolBarRuler(this)"/>工具条标尺
-    <input type="checkbox" id="overview" onclick="toggleOverViewShow(this)"/>显示鹰眼
-    <input type="checkbox" id="overviewOpen" disabled onclick="toggleOverViewOpen(this)"/>展开鹰眼
-</div>
+{#<div class='button-group' style="background-color: #0d9bf2;right: 20px">#}
+{#    <input type="checkbox" onclick="toggleScale(this)"/>比例尺#}
+{#    <input type="checkbox" id="toolbar" onclick="toggleToolBar(this)"/>工具条#}
+{#    <input type="checkbox" id="toolbarDirection" disabled onclick="toggleToolBarDirection(this)"/>工具条方向盘#}
+{#    <input type="checkbox" id="toolbarRuler" disabled onclick="toggleToolBarRuler(this)"/>工具条标尺#}
+{#    <input type="checkbox" id="overview" onclick="toggleOverViewShow(this)"/>显示鹰眼#}
+{#    <input type="checkbox" id="overviewOpen" disabled onclick="toggleOverViewOpen(this)"/>展开鹰眼#}
+{#</div>#}
 
 {% load static %}
 <script>
@@ -101,25 +101,37 @@
             {#                        });#}
             addMarker([geoResult.position.getLng(), geoResult.position.getLat()], 0)
             addMarker([geoResult.position.getLng() + 0.001, geoResult.position.getLat() + 0.001], 1)
+
+            var circle = new AMap.Circle({
+                map: map,
+                center: geoResult.position,          //设置线覆盖物路径
+                radius: 150, //米
+                strokeColor: "#3366FF", //边框线颜色
+                strokeOpacity: 0.3,       //边框线透明度
+                strokeWeight: 3,        //边框线宽
+                fillColor: "#FFA500", //填充色
+                fillOpacity: 0.35//填充透明度
+            });
             console.log(geoResult.position)
         });
     });
 
-
     function addMarker(pos, color) {
-        marker = new AMap.Marker({
-            icon: color == 0 ? "http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png" :
-                "http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",
+        var marker = new AMap.Marker({
+            icon: "http://oyjbgqiy4.bkt.clouddn.com/ship.png",
+            {#            icon: color == 0 ? "http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png" :#}
+            {#                "http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",#}
             position: pos,
             title: "测试"
         });
 
         marker.setMap(map);
-        AMap.event.addListener(marker, 'click', function() {
+        AMap.event.addListener(marker, 'click', function () {
             infoWindow.open(map, marker.getPosition());
         });
     }
-    var title = '方恒假日酒店<span style="font-size:11px;color:#F00;">价格:318</span>';
+
+    var title = '哈哈<span style="font-size:11px;color:#F00;">小三贼船</span>';
     var content = [];
     content.push("<img src='http://tpc.googlesyndication.com/simgad/5843493769827749134'>地址：北京市朝阳区阜通东大街6号院3号楼东北8.3公里");
     content.push("电话：010-64733333");
@@ -169,6 +181,7 @@
         info.appendChild(bottom);
         return info;
     }
+
     //关闭信息窗体
     function closeInfoWindow() {
         map.clearInfoWindow();
@@ -276,47 +289,6 @@
         document.getElementById('toolbarRuler').checked = false;
         toolBar.hideRuler();
     }
-
-    AMapUI.loadUI((['overlay/AwesomeMarker', 'overlay/SimpleMarker'],
-        function (AwesomeMarker, SimpleMarker) {
-            var center = map.getCenter();
-            new AwesomeMarker({
-                //设置awesomeIcon
-                awesomeIcon: "ship",
-                iconLabel: {
-                    style: {
-                        color: SimpleMarker.getBuiltInIconStyles()[0],
-                        fontSize: '14px'
-                    }
-                },
-
-                //图标
-                iconStyle: SimpleMarker.getBuiltInIconStyles()[0],
-
-                map: map,
-                position: center,
-                title: 'awesomeIcon :' + "ship"
-
-            });
-
-            {#        new SimpleMarker({#}
-            {#            iconLabel: '1',#}
-            {#            //自定义图标地址#}
-            {#            iconStyle:#}
-            {#                {#}
-            {#                    src: 'http://fontawesome.io/icon/ship/',#}
-            {#                    style: {#}
-            {#                        width: '20px',#}
-            {#                        height: '30px'#}
-            {#                    }#}
-            {#                },#}
-            {#            //设置基点偏移#}
-            {#            offset: new AMap.Pixel(-19, -60),#}
-            {#            map: map,#}
-            {#            showPositionPoint: true,#}
-            {#            position: center,#}
-            {#            zIndex: 100#}
-        }));
 
     AMap.plugin(['AMap.ToolBar'], function () {
         map.addControl(new AMap.ToolBar({
