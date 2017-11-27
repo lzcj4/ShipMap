@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div style="position: absolute;left: 50%">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for f in form %}
+                <div>
+                    {{ f.errors }}
+                    {{ f.label_tag }}
+                    {{ f }}
+                </div>
+            {% endfor %}
+            <input type="submit" content="提交"/>
+        </form>
+    </div>
+
+{% endblock content %}

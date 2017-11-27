@@ -11,10 +11,10 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+from django.utils.translation import ugettext_lazy as _
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -27,18 +27,18 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
 
 INSTALLED_APPS = [
-    # 'channels',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'map'
+    'map',
+    'sysadmin'
 ]
 
 CHANNEL_LAYERS = {
@@ -63,7 +63,7 @@ ROOT_URLCONF = 'ShipMap.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')] ,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,17 +78,28 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ShipMap.wsgi.application'
 
-
+# TODO:Mysql 数据库设置
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
+# CREATE DATABASE shipmap  DEFAULT CHARACTER SET utf8  DEFAULT COLLATE utf8_general_ci;
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'CREATE_DB': True,
+        'CHARSET': "utf8",
+        'NAME': 'shipmap',
+        'USER': 'root',
+        'PASSWORD': 'root',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS': {
+            "init_command": "SET foreign_key_checks = 0;",
+        },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -108,22 +119,32 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
-
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+LANGUAGES = (
+    ('cn', _('China')),
+)
+LOGIN_URL = 'sysadmin:login'
+LOGOUT_REDIRECT_URL = 'sysadmin:index'
+LOGIN_REDIRECT_URL = 'sysadmin:index'
+
+# TODO:#文件上传跨磁盘访问
+# http://python.usyiyi.cn/documents/django_182/howto/static-files/index.html#serving-uploaded-files-in-development
+MEDIA_ROOT = "E:/Media/"
+MEDIA_URL = "media/"

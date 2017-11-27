@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    {% if not user.is_authenticated %}
+        <div class="div_login">
+
+            <form method="post" action="{% url 'sysadmin:login' %}">
+                {% csrf_token %}
+                <table>
+                    <tr>
+                        <td>用户名:</td>
+                        <td><input id="txtUser" name="user" width="50"/></td>
+                    </tr>
+                    <tr>
+                        <td>密码:</td>
+                        <td><input id="txtPwd" type="password" name="pwd" width="50"/></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><input type="submit" content="提交"/></td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+
+    {% endif %}
+
+    <div class="container">
+        {% for k1,v1 in list_result.group_cars.items %}
+            <div class="row panel panel-default">
+                <div class="panel-heading" >
+{#                    style="position: relative;border-bottom:1px solid #000"#}
+                    <span style="color: red"><h3>{{ k1.index_char }}</h3></span>
+                </div>
+
+                <div class="panel-heading" style="position: relative;margin-top: 20px">
+                    <span><h3>{{ k1.name }}</h3></span>
+                </div>
+
+                {% for k2,v2 in v1.items %}
+                    {% for car in v2 %}
+                        <div class="col-md-2 column ui-sortable">
+                            <div class="thumbnail">
+                                <img src="{{ car.front_photo }}">
+                                <div class="caption">
+                                    <h3>{{ car.market_year }}</h3>
+                                    <p>{{ car.front }}</p>
+                                    <p>
+                                        <a href="#" class="btn btn-primary" role="button"> 按钮 </a>
+                                        <a href="#" class="btn btn-default" role="button">按钮 </a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="div_inline col-xs-6 col-md-offset-3 ">
+        {% if list_result.cars.has_other_pages %}
+            <ul class="pagination pagination-lg">
+                {% if list_result.cars.has_previous %}
+                    <li><a href="?page={{ list_result.cars.previous_page_number }}">&laquo;</a></li>
+                {% else %}
+                    <li class="disabled" style="font-weight: bold"><span>&laquo;</span></li>
+                {% endif %}
+                {% for i in list_result.cars.paginator.page_range %}
+                    {% if list_result.cars.number == i %}
+                        <li class="active"><span>{{ i }} </span></li>
+                    {% else %}
+                        <li><a href="?page={{ i }}">{{ i }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                {% if list_result.cars.has_next %}
+                    <li>
+                        <a href="?page={{ list_result.cars.next_page_number }}">
+                            <span style="font-weight: bold">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="disabled"><span style="font-weight: bold">&raquo;</span></li>
+                {% endif %}
+            </ul>
+        {% endif %}
+    </div>
+
+    </div>
+{% endblock content %}
