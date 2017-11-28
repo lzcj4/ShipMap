@@ -46,6 +46,7 @@ class Ship(models.Model):
 
     class Meta:
         default_permissions = ()
+        permissions = (("can_create_ship", "创建船只"),)
 
 
 class ShipRoute(models.Model):

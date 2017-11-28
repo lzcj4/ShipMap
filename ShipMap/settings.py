@@ -37,9 +37,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'guardian',
     'map',
     'sysadmin'
 ]
+
+# Django-guardian实现对象级别的权限控制：http://www.unionsmart.cn/archives/603
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', # 这是Django默认的
+    'guardian.backends.ObjectPermissionBackend', # 这是guardian的
+)
 
 CHANNEL_LAYERS = {
     "default": {
