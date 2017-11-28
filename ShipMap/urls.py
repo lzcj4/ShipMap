@@ -20,13 +20,11 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     # url(r'^$', map.views.index, name="index"),
-    url(r'^$', include('map.urls')),
-     url(r'^admin/', include('sysadmin.urls')),
-    # url(r'^admin/', admin.site.urls),
+    url(r'^', include('map.urls')),
+    url(r'^admin/', include('sysadmin.urls')),
 ]
 urlpatterns += staticfiles_urlpatterns()
 
 urlpatterns += staticfiles_urlpatterns()
 # TODO:#加入磁盘访问路径
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-

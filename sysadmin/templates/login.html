@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% if perms.change_userinfo %}
+         {{ 'no rights' }}
+{% endif %}
 
     <form method="post">
         {% csrf_token %}

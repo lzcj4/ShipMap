@@ -3,7 +3,7 @@ from django.conf.urls import url
 
 from sysadmin import views
 from sysadmin.views_car import CarListView
-from sysadmin.views_my import MyLoginView, MyLogoutView, MyPasswordChangeView, MarkTaskListView, MarkTaskCreateView
+from sysadmin.views_my import MyLoginView, MyLogoutView, MyPasswordChangeView
 
 app_name = "sysadmin"
 urlpatterns = [
@@ -17,7 +17,4 @@ urlpatterns = [
     url(r'logout/$', MyLogoutView.as_view(), name="logout"),
     url(r'password/change/$', MyPasswordChangeView.as_view(), name="password_change"),
     url(r'car/list/$', CarListView.as_view(), name="list_car"),
-
-    url(r'task/list/', MarkTaskListView.as_view(), name="task_list"),
-    url(r'task/create/$', MarkTaskCreateView.as_view(), name="task_create"),
 ]

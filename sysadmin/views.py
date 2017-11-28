@@ -1,9 +1,5 @@
 import json
 
-from sysadmin.forms import MyAuthenticationForm
-from sysadmin.models_car import CarFeature
-from sysadmin.perms import Perms
-from sysadmin.utils import log_time
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission
@@ -12,6 +8,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+
+from sysadmin.forms import MyAuthenticationForm
+from sysadmin.models_car import CarFeature
+from sysadmin.userperms import UserPerms
+from sysadmin.utils import log_time
 
 HTTP_GET = "GET"
 HTTP_POST = "POST"
@@ -29,7 +30,7 @@ def index(request):
 
 def add_perm(user):
     content_type = ContentType.objects.get_for_model(CarFeature)
-    permission = Permission.objects.create(codename=Perms.CAR_LIST,
+    permission = Permission.objects.create(codename=UserPerms.CAR_LIST,
                                            name='车辆列表',
                                            content_type=content_type)
     user.user_permissions.add(permission)

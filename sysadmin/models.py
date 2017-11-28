@@ -11,7 +11,10 @@ from django.dispatch import receiver
 class UserInfo(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     department = models.CharField(max_length=100)
+
     # tasks = models.ForeignKey('MarkTask', on_delete=models.CASCADE, default=0)
+    class Meta:
+        default_permissions = ()
 
 
 @receiver(post_save, sender=User)
@@ -28,36 +31,63 @@ def save_user_profile(sender, instance, **kwargs):
 # endregion
 
 
-# region JS-Mark models
+# region ship models
 
-class MarkUserTask(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    task = models.ForeignKey('MarkTask', on_delete=models.CASCADE)
+class Ship(models.Model):
+    """
+    船只
+    """
+    no = models.CharField(max_length=100, verbose_name='船只编号', unique=True)
+    name = models.CharField(max_length=100, verbose_name='船名', unique=False, default='')
+    harbor = models.CharField(max_length=100, verbose_name='码头', unique=False, default='')
+    caption = models.CharField(max_length=100, verbose_name='船长', unique=False, default='')
+    phone = models.CharField(max_length=100, verbose_name='电话', unique=False, default='')
+    address = models.CharField(max_length=100, verbose_name='地址', unique=False, default='')
+
+    class Meta:
+        default_permissions = ()
 
 
-class MarkTask(models.Model):
-    name = models.CharField(max_length=100, verbose_name='任务名', unique=False, default='')
-    user_created = models.ForeignKey(User, verbose_name='创建人', null=False)
+class ShipRoute(models.Model):
+    """
+    船只路线
+    """
+    ship = models.ForeignKey("Ship", on_delete=models.CASCADE)
+    longitude = models.FloatField(verbose_name='经度')
+    latitude = models.FloatField(verbose_name='纬度')
     date_created = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
 
-    # class Meta:
-    #     default_related_name = "files"
-    #     permissions = (("create_marktask", "创建任务权利"))
+    class Meta:
+        default_permissions = ()
 
 
-class MarkFile(models.Model):
-    file_name = models.CharField(max_length=100, verbose_name='文件名', default='')
-    file_path = models.CharField(max_length=500, verbose_name='文件服务器端相对路径', default='')
-    task = models.ForeignKey('MarkTask', on_delete=models.CASCADE, related_name='files')
+class ShipDefenceArea(models.Model):
+    """
+    船只防区
+    """
+    name = models.CharField(max_length=100, verbose_name='船名', unique=False, default='')
+    longitude = models.FloatField(verbose_name='经度')
+    latitude = models.FloatField(verbose_name='纬度')
+    radius = models.FloatField(verbose_name='防御半径')
+
+    class Meta:
+        default_permissions = ()
 
 
-class MarkObject(models.Model):
-    name = models.CharField(max_length=100, verbose_name='对象名', default='')
-    file = models.ForeignKey('MarkFile', on_delete=models.CASCADE, related_name='objects')
+class Radar(models.Model):
+    """
+    雷达
+    经纬度转换:
+    https://wenku.baidu.com/view/26eda9146edb6f1aff001fe0.html
+    http://www.gzhatu.com/du2dfm.html
+    """
+    no = models.CharField(max_length=100, verbose_name='雷达编号', unique=True)
+    name = models.CharField(max_length=100, verbose_name='雷达名称', unique=False, default='')
+    longitude = models.FloatField(verbose_name='经度')
+    latitude = models.FloatField(verbose_name='纬度')
+    address = models.CharField(max_length=100, verbose_name='地址', unique=False, default='')
 
-
-class MarkFeature(models.Model):
-    name = models.CharField(max_length=100, verbose_name='特征名', default='')
-    object = models.ForeignKey('MarkObject', on_delete=models.CASCADE, related_name='features')
+    class Meta:
+        default_permissions = ()
 
 # endregion

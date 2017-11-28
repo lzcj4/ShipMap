@@ -1,11 +1,11 @@
 import os
+import re
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.template.defaultfilters import register
 from django.urls import reverse
 import time
-from sysadmin.models import MarkTask, MarkFile, MarkUserTask
 
 
 def add_test_user(user: User):
@@ -16,56 +16,74 @@ def add_test_user(user: User):
     #     user.save()
 
 
-def add_test_task(user: User):
-    get_items = MarkUserTask.objects.filter(user=user)
-    # u_t = MarkUserTask.objects.get(user__id=user.id)
-    u_t = get_items[0] if get_items and len(get_items) > 0 else None
-    if u_t:
-        print("user:{0},task:{1}".format(u_t.user.id, u_t.task.id))
-    task = MarkTask(name="task1")
-    task.save()
+COORDINATE_RATE = 60.0
 
-    file = MarkFile(file_path='c:/test.jpg')
-    file.task = task
-    file.save()
 
-    user_task = MarkUserTask(task=task, user=user)
-    user_task.save()
-    file2 = MarkFile(file_path='c:/test2.jpg')
-    file2.task = task
-    file2.save()
+def num_to_coord(num: float) -> str:
+    """
+    float to coordinate:浮点数到经纬度
+    :param num:
+    :return:
+    """
+    temp_num = num
+    int_value = int(num)
+    temp_num -= int_value
+    minute = int(temp_num * COORDINATE_RATE)
+    temp_num = temp_num * COORDINATE_RATE - minute
+    second = temp_num * COORDINATE_RATE
+    coor = "{0}°{1}'{2}\"".format(int_value, minute, round(second, 2))
+    return coor
 
-    print("task:{0},file:{1},task.files:{2}".format(task.id, file.id, task.files.count()))
 
-    @register.filter
-    def get_media_file_url(file_name):
-        """
-        获取文件URL
-        :param file_name:
-        :return:
-        """
-        return "{0}{1}{2}".format(reverse("backend:index"), settings.MEDIA_URL, file_name)
+def coord_to_num(coor: str) -> float:
+    """
+    coordinate to num:经纬度到浮点数
+    :param coor:
+    :return:
+    """
+    items = re.split('°|\'|\"', coor)
+    if (len(items) != 3):
+        return -1
+    int_value = int(items[0])
+    minute = float(items[1])
+    second = float(items[2])
+    minute = minute + second / COORDINATE_RATE
 
-    def get_media_file_path(file_name: str) -> str:
-        """
-        获取文件保存绝对路径
-        :param file_name:
-        :return:
-        """
-        return "{0}{1}".format(settings.MEDIA_ROOT, file_name)
+    num = minute / COORDINATE_RATE + int(int_value)
+    return num
 
-    def get_media_save_path(file_name):
-        """
-        获取文件原保存 新文件名 和 新绝对路径
-        :param file_name:
-        :return:
-        """
-        """:type:int"""
-        t = int(time())
 
-        file, ext = os.path.splitext(file_name)
-        new_name = "{0}_{1}{2}".format(file, t, ext)
-        return new_name, get_media_file_path(new_name)
+@register.filter
+def get_media_file_url(file_name):
+    """
+    获取文件URL
+    :param file_name:
+    :return:
+    """
+    return "{0}{1}{2}".format(reverse("backend:index"), settings.MEDIA_URL, file_name)
+
+
+def get_media_file_path(file_name: str) -> str:
+    """
+    获取文件保存绝对路径
+    :param file_name:
+    :return:
+    """
+    return "{0}{1}".format(settings.MEDIA_ROOT, file_name)
+
+
+def get_media_save_path(file_name):
+    """
+    获取文件原保存 新文件名 和 新绝对路径
+    :param file_name:
+    :return:
+    """
+    """:type:int"""
+    t = int(time())
+
+    file, ext = os.path.splitext(file_name)
+    new_name = "{0}_{1}{2}".format(file, t, ext)
+    return new_name, get_media_file_path(new_name)
 
 
 @register.filter
