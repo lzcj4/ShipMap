@@ -24,7 +24,5 @@ urlpatterns = [
     url(r'^admin/', include('sysadmin.urls')),
 ]
 urlpatterns += staticfiles_urlpatterns()
-
-urlpatterns += staticfiles_urlpatterns()
 # TODO:#加入磁盘访问路径
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

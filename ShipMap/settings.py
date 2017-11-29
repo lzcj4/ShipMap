@@ -11,9 +11,11 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+
 from django.utils.translation import ugettext_lazy as _
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
@@ -30,7 +32,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    # 'channels',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,8 +46,8 @@ INSTALLED_APPS = [
 
 # Django-guardian实现对象级别的权限控制：http://www.unionsmart.cn/archives/603
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend', # 这是Django默认的
-    'guardian.backends.ObjectPermissionBackend', # 这是guardian的
+    'django.contrib.auth.backends.ModelBackend',  # 这是Django默认的
+    'guardian.backends.ObjectPermissionBackend',  # 这是guardian的
 )
 
 CHANNEL_LAYERS = {

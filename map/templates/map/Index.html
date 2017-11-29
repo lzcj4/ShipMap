@@ -33,7 +33,6 @@
 
 </head>
 <body>
-<img src="/static/images/ship.png" style="visibility: collapse"/>
 <div id="container"></div>
 
 <div id="myPageTop">
@@ -54,7 +53,7 @@
                 <input type="text" placeholder="请输入关键字进行搜索" id="tipinput">
             </td>
             <td class="column2">
-                <input type="text" readonly="true" id="lnglat">
+                <input type="text" id="lnglat">
             </td>
             <td class="column2">
                 <input type="text" id="txtRadius" value="150" oninput="TextChange(this)"/>
@@ -75,12 +74,9 @@
 <script>
     'use strict';
     var socket = new WebSocket("ws://" + window.location.host + "/chat/");
-    var count = 2;
     socket.onmessage = function (e) {
-        //alert(e.data);
-        addMarker([map.getCenter().getLng() + count * 0.001, map.getCenter().getLat() + count * 0.001], 0)
-        addMarker([119.948655, 30.25918], 1)
-        count++;
+        var pos = JSON.parse(e.data);
+        addMarker([pos.longitude,pos.latitude], 0)
     }
     socket.onopen = function () {
         socket.send("hello world");
