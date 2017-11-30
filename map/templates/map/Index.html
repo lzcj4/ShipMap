@@ -5,35 +5,27 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
     <title>船舶北斗定位</title>
+
     <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
     <script src="http://cache.amap.com/lbs/static/es5.min.js"></script>
     <script src="http://webapi.amap.com/maps?v=1.4.0&key=e74bfa8a52be17be2435ebfa02081c79&&plugin=AMap.Scale,AMap.OverView,AMap.ToolBar"></script>
     <script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
     {% block header %}
         {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap.min.css" %}"/>
         <link rel="stylesheet" type="text/css" href="{% static "css/div_style.css" %}"/>
+
+        <script src="{% static "js/jquery.min.js" %}"></script>
+        <script src="{% static "js/vue.min.js" %}"></script>
+        <script src="{% static "js/utils.js" %}"></script>
+        <script src="{% static "js/map.toolbar.js" %}"></script>
+        <script src="{% static "js/bootstrap.min.js" %}"></script>
     {% endblock header %}
-
-    <style>
-        html,
-        body,
-        #container {
-            width: 100%;
-            height: 100%;
-            margin: 0px;
-        }
-
-        #myIcon {
-            background: orange;
-            width: 20px;
-            height: 60px;
-            border-radius: 10px;
-        }
-    </style>
-
 </head>
+
 <body>
-<div id="container"></div>
+
+<div id="container" class="container"></div>
 
 <div id="myPageTop">
     <table>
@@ -50,13 +42,13 @@
         </tr>
         <tr>
             <td>
-                <input type="text" placeholder="请输入关键字进行搜索" id="tipinput">
+                <input class="form-control" type="text" placeholder="请输入关键字进行搜索" id="tipinput">
             </td>
             <td class="column2">
-                <input type="text" id="lnglat">
+                <input class="form-control" type="text" id="lnglat">
             </td>
             <td class="column2">
-                <input type="text" id="txtRadius" value="150" oninput="TextChange(this)"/>
+                <input class="form-control" type="text" id="txtRadius" v-model="circleRadius"/>
             </td>
         </tr>
     </table>
@@ -71,34 +63,58 @@
 {#</div>#}
 
 {% load static %}
-<script>
-    'use strict';
-    var socket = new WebSocket("ws://" + window.location.host + "/chat/");
-    socket.onmessage = function (e) {
-        var pos = JSON.parse(e.data);
-        addMarker([pos.longitude,pos.latitude], 0)
-    }
-    socket.onopen = function () {
-        socket.send("hello world");
-    }
-    // Call onopen directly if socket is already open
 
+<script>
+
+    'use strict';
+
+    function openWebSocket() {
+        var socket = new WebSocket("ws://" + window.location.host + "/");
+        socket.onmessage = function (e) {
+            try {
+                var pos = JSON.parse(e.data);
+                addShip([pos.longitude, pos.latitude], 0)
+            }
+            catch (ex) {
+                console.log("json parse:" + e.data + ",failed:" + ex.toString());
+            }
+        }
+        socket.onopen = function () {
+            socket.send("start new connection");
+        }
+    }
+
+    // Call onopen directly if socket is already open
     var map = new AMap.Map("container", {
         resizeEnable: true,
         zoom: 13
     });
 
     //为地图注册click事件获取鼠标点击出的经纬度坐标
-
-    var clickEventListener = map.on('click', function (e) {
-        document.getElementById("lnglat").value = e.lnglat.getLng() + ',' + e.lnglat.getLat();
+    map.on('click', function (e) {
+        $("#lnglat").val(e.lnglat.getLng() + ',' + e.lnglat.getLat());
     });
     var circle;
+    var shipList = [];
 
-    function TextChange(txtBox) {
-        if (event.inputType == 'insertText') {
-            circle.radius = parseFloat(txtBox.value);
+    function setRadiusChange(newRadius) {
+        circle.setRadius(parseFloat(newRadius));
+        checkAllShipInRange();
+    }
+
+    function checkAllShipInRange() {
+        for (var index in shipList) {
+            var ship = shipList[index];
+            setShipIcon(circle, ship)
         }
+    }
+
+    function setShipIcon(circle, ship) {
+        if (checkElementIsNone(circle) || checkElementIsNone(ship)) {
+            return;
+        }
+        ship.setIcon(circle.contains(ship.getPosition()) ?
+            "http://oyjbgqiy4.bkt.clouddn.com/ship.png" : "http://oyjbgqiy4.bkt.clouddn.com/redboat.png");
     }
 
     map.plugin('AMap.Geolocation', function () {
@@ -117,21 +133,6 @@
         });
         map.addControl(geolocation);
         geolocation.getCurrentPosition(function (status, geoResult) {
-            {#                        new AMap.Marker({#}
-            {#                            map: map,#}
-            {#                            position: geoResult.position,#}
-            {#                            icon: new AMap.Icon({#}
-            {#                                size: new AMap.Size(40, 50),  //图标大小#}
-            {#                                image: "http://webapi.amap.com/theme/v1.3/images/newpc/way_btn2.png",#}
-            {#                                imageOffset: new AMap.Pixel(0, -60)#}
-            {#                            })#}
-            {#                        });#}
-            addMarker([geoResult.position.getLng(), geoResult.position.getLat()], 0)
-            addMarker([geoResult.position.getLng() + 0.001, geoResult.position.getLat() + 0.001], 1)
-
-            if (socket.readyState == WebSocket.OPEN) {
-                socket.onopen();
-            }
             circle = new AMap.Circle({
                 map: map,
                 center: geoResult.position,          //设置线覆盖物路径
@@ -142,24 +143,23 @@
                 fillColor: "#FFA500", //填充色
                 fillOpacity: 0.35//填充透明度
             });
-            console.log(geoResult.position)
+            addShip([geoResult.position.getLng(), geoResult.position.getLat()], 0)
+            addShip([geoResult.position.getLng() + 0.002, geoResult.position.getLat() + 0.002], 1)
         });
     });
 
-    function addMarker(pos, color) {
-        var marker = new AMap.Marker({
-            icon: color == 0 ? "http://oyjbgqiy4.bkt.clouddn.com/ship.png" :
-                "http://oyjbgqiy4.bkt.clouddn.com/redboat.png",
-            {#            icon: color == 0 ? "http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png" :#}
-            {#                "http://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",#}
+    function addShip(pos, color) {
+        var ship = new AMap.Marker({
             position: pos,
             title: color == 0 ? "已方船只" : "未知船只"
         });
-
-        marker.setMap(map);
-        AMap.event.addListener(marker, 'click', function () {
-            infoWindow.open(map, marker.getPosition());
+        ship.setMap(map);
+        AMap.event.addListener(ship, 'click', function () {
+            infoWindow.open(map, ship.getPosition());
         });
+
+        setShipIcon(circle, ship);
+        shipList.push(ship);
     }
 
     var title = '哈哈<span style="font-size:11px;color:#F00;">小三贼船</span>';
@@ -172,46 +172,6 @@
         content: createInfoWindow(title, content.join("<br/>")),
         offset: new AMap.Pixel(16, -45)
     });
-
-    //构建自定义信息窗体
-    function createInfoWindow(title, content) {
-        var info = document.createElement("div");
-        info.className = "info";
-
-        //可以通过下面的方式修改自定义窗体的宽高
-        //info.style.width = "400px";
-        // 定义顶部标题
-        var top = document.createElement("div");
-        var titleD = document.createElement("div");
-        var closeX = document.createElement("img");
-        top.className = "info-top";
-        titleD.innerHTML = title;
-        closeX.src = "http://webapi.amap.com/images/close2.gif";
-        closeX.onclick = closeInfoWindow;
-
-        top.appendChild(titleD);
-        top.appendChild(closeX);
-        info.appendChild(top);
-
-        // 定义中部内容
-        var middle = document.createElement("div");
-        middle.className = "info-middle";
-        middle.style.backgroundColor = 'white';
-        middle.innerHTML = content;
-        info.appendChild(middle);
-
-        // 定义底部内容
-        var bottom = document.createElement("div");
-        bottom.className = "info-bottom";
-        bottom.style.position = 'relative';
-        bottom.style.top = '0px';
-        bottom.style.margin = '0 auto';
-        var sharp = document.createElement("img");
-        sharp.src = "http://webapi.amap.com/images/sharp.png";
-        bottom.appendChild(sharp);
-        info.appendChild(bottom);
-        return info;
-    }
 
     //关闭信息窗体
     function closeInfoWindow() {
@@ -232,100 +192,22 @@
     map.addControl(toolBar);
     map.addControl(overView);
 
-    function toggleScale(checkbox) {
-        if (checkbox.checked) {
-            scale.show();
-        } else {
-            scale.hide();
-        }
-    }
-
-    function toggleToolBar(checkbox) {
-        if (checkbox.checked) {
-            showToolBar();
-            showToolBarDirection();
-            showToolBarRuler();
-        } else {
-            hideToolBar();
-            hideToolBarDirection();
-            hideToolBarRuler();
-        }
-    }
-
-    function toggleToolBarDirection(checkbox) {
-        if (checkbox.checked) {
-            toolBar.showDirection()
-        } else {
-            toolBar.hideDirection()
-        }
-    }
-
-    function toggleToolBarRuler(checkbox) {
-        if (checkbox.checked) {
-            toolBar.showRuler();
-        } else {
-            toolBar.hideRuler();
-        }
-    }
-
-    function toggleOverViewShow(checkbox) {
-        if (checkbox.checked) {
-            overView.show();
-            document.getElementById('overviewOpen').disabled = false;
-        } else {
-            overView.hide();
-            document.getElementById('overviewOpen').disabled = true;
-        }
-    }
-
-    function toggleOverViewOpen(checkbox) {
-        if (checkbox.checked) {
-            overView.open();
-        }
-        else {
-            overView.close();
-        }
-    }
-
-    function showToolBar() {
-        document.getElementById('toolbar').checked = true;
-        document.getElementById('toolbarDirection').disabled = false;
-        document.getElementById('toolbarRuler').disabled = false;
-        toolBar.show();
-    }
-
-    function hideToolBar() {
-        document.getElementById('toolbar').checked = false;
-        document.getElementById('toolbarDirection').disabled = true;
-        document.getElementById('toolbarRuler').disabled = true;
-        toolBar.hide();
-    }
-
-    function showToolBarDirection() {
-        document.getElementById('toolbarDirection').checked = true;
-        toolBar.showDirection();
-    }
-
-    function hideToolBarDirection() {
-        document.getElementById('toolbarDirection').checked = false;
-        toolBar.hideDirection();
-    }
-
-    function showToolBarRuler() {
-        document.getElementById('toolbarRuler').checked = true;
-        toolBar.showRuler();
-    }
-
-    function hideToolBarRuler() {
-        document.getElementById('toolbarRuler').checked = false;
-        toolBar.hideRuler();
-    }
-
     AMap.plugin(['AMap.ToolBar'], function () {
         map.addControl(new AMap.ToolBar({
             map: map
         }));
     });
+
+    var app = new Vue({
+        el: '#myPageTop',
+        data: {
+            circleRadius: 150,
+        },
+        watch: {
+            circleRadius: setRadiusChange,
+        }
+    })
+    openWebSocket();
 </script>
 </body>
 </html>

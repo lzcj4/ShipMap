@@ -8,6 +8,8 @@ from ctypes import (
     c_float, c_byte
 )
 
+from channels import Group
+
 from ShipMap import settings
 
 
@@ -34,8 +36,8 @@ class C_Location(Structure):
 class Location(object):
     def __init__(self, c_loc):
         if settings.DEBUG:
-            self.latitude = round(c_loc.latitude.data, 5) + random.random()
-            self.longitude = round(c_loc.longitude.data, 5) + random.random()
+            self.latitude = round(c_loc.latitude.data, 5) + random.random() / 10.0
+            self.longitude = round(c_loc.longitude.data, 5) + random.random() / 10.0
         else:
             self.latitude = round(c_loc.latitude.data, 5)
             self.longitude = round(c_loc.longitude.data, 5)
@@ -141,6 +143,5 @@ class RadarReceiver:
             loc.direction.chunk[:] = data_item[7 * 4: 8 * 4]
 
             l = Location(loc)
-            for client in client_cache:
-                client.send({"text": l.to_json()})
+            Group("radar").send({"text": l.to_json()}, immediately=True)
             print("- - {0}、{1};{2}".format(i, l, l.to_json()))
