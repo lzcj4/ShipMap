@@ -61,21 +61,32 @@
 
 <script>
     'use strict';
-    var WS_CMD = {'test': -1, 'area': 0};
+    var WS_CMD = {'connect': 0, 'area': 1};
     var socket;
 
     function openWebSocket() {
         socket = new WebSocket("ws://" + window.location.host + "/");
         socket.onmessage = function (e) {
             try {
-                var pos = JSON.parse(e.data);
-                addShip([pos.longitude, pos.latitude], 0)
+                var jsonObj = JSON.parse(e.data);
+                switch (jsonObj.cmd) {
+                    case WS_CMD.connect:
+                        break;
+                    case WS_CMD.area:
+                        var items = JSON.parse(jsonObj.json);
+                        for (var i in items) {
+                            var item = items[i];
+                            addCircle([item.longitude, item.latitude], item.radius, item.id);
+                        }
+                        checkAllShipInArea();
+                }
+                {#                addShip([pos.longitude, pos.latitude], 0)#}
             } catch (ex) {
                 console.log("json parse:" + e.data + ",failed:" + ex.toString());
             }
         }
         socket.onopen = function () {
-            var js = {'cmd': WS_CMD.test, "msg": "start new connection", 'json': ""};
+            var js = {'cmd': WS_CMD.connect, "msg": "start new connection", 'json': ""};
             socket.send(JSON.stringify(js));
         }
     }
@@ -97,32 +108,48 @@
     map.on('click', function (e) {
         $("#lnglat").val(e.lnglat.getLng() + ',' + e.lnglat.getLat());
     });
-    var circle;
+    var currentCircle;
+    var circleList = [];
     var shipList = [];
 
     function setRadiusChange(newRadius) {
         try {
             var r = parseFloat(newRadius);
-            if (r != circle.getRadius()) {
-                circle.setRadius(r);
-                checkAllShipInRange();
+            if (!checkElementIsNone(currentCircle)) {
+                if (r != currentCircle.getRadius()) {
+                    currentCircle.setRadius(r);
+                    checkAllShipInArea();
+                }
             }
         } catch (ex) {
         }
     }
 
-    function checkAllShipInRange() {
+    function checkPositionInArea(pos) {
+        var result = false;
+        for (var index in circleList) {
+            var c = circleList[index];
+            if (c.contains(pos)) {
+                result = true;
+                break;
+            }
+        }
+        return result;
+    }
+
+    function checkAllShipInArea() {
         for (var index in shipList) {
             var ship = shipList[index];
-            setShipIcon(circle, ship)
+            setShipIcon(ship)
         }
     }
 
-    function setShipIcon(circle, ship) {
-        if (checkElementIsNone(circle) || checkElementIsNone(ship)) {
+    function setShipIcon(ship) {
+        if (checkElementIsNone(ship)) {
             return;
         }
-        var isInArea = circle.contains(ship.getPosition());
+
+        var isInArea = checkPositionInArea(ship.getPosition());
         ship.setTitle(isInArea ? "已方船只" : "未知船只");
         ship.setIcon(isInArea ? "http://oyjbgqiy4.bkt.clouddn.com/ship.png" : "http://oyjbgqiy4.bkt.clouddn.com/blackship.png");
     }
@@ -143,13 +170,15 @@
         });
         map.addControl(geolocation);
         geolocation.getCurrentPosition(function (status, geoResult) {
-            circle = addCircle(geoResult.position, $("#txtRadius").val());
-            addShip(geoResult.position, 0)
-            addShip([geoResult.position.getLng() + 0.002, geoResult.position.getLat() + 0.002], 1)
+            {#            var circle = addCircle(geoResult.position, $("#txtRadius").val());#}
+            {#            circleList.push(circle);#}
+            addShip(geoResult.position, 0);
+            addShip([geoResult.position.getLng() + 0.002, geoResult.position.getLat() + 0.002], 1);
+            checkAllShipInArea();
         });
     });
 
-    function addCircle(pos, radius) {
+    function addCircle(pos, radius, id) {
         var circle = new AMap.Circle({
             bubble: false,
             map: map,
@@ -162,11 +191,18 @@
             fillOpacity: 0.35,//填充透明度
         });
         var extData = circle.getExtData();
-        extData['id'] = new Date().getTime().toString();
+        if (!checkElementIsNone(id)) {
+            extData['id'] = id;
+        }
+        else {
+            extData['id'] = new Date().getTime().toString();
+        }
+        circleList.push(circle);
         circle.setExtData(extData);
         {#        http: //lbs.amap.com/api/javascript-api/reference/plugin#AMap.CircleEditor#}
         circle.on('dblclick', function (e) {
             map.plugin(["AMap.CircleEditor"], function (e) {
+                currentCircle = circle;
                 var ce = new AMap.CircleEditor(map, circle);
                 var extData = circle.getExtData();
                 extData['editor'] = ce;
@@ -176,6 +212,7 @@
         });
 
         circle.on('rightclick', function (e) {
+            currentCircle = null;
             var extData = circle.getExtData()
             if (extData.editor) {
                 extData.editor.close();
@@ -189,7 +226,7 @@
         });
 
         circle.on('change', function (e) {
-            checkAllShipInRange();
+            checkAllShipInArea();
             $("#txtRadius").val(circle.getRadius());
         });
         return circle;
@@ -208,7 +245,7 @@
         {#        AMap.event.addListener(ship, 'click', function () {#}
         {#            infoWindow.open(map, ship.getPosition());#}
         {#        });#}
-        setShipIcon(circle, ship);
+        setShipIcon(ship);
         shipList.push(ship);
     }
 
