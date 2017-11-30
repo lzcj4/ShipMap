@@ -36,8 +36,8 @@ class C_Location(Structure):
 class Location(object):
     def __init__(self, c_loc):
         if settings.DEBUG:
-            self.latitude = round(c_loc.latitude.data, 5) + random.random() / 10.0
-            self.longitude = round(c_loc.longitude.data, 5) + random.random() / 10.0
+            self.latitude = round(c_loc.latitude.data, 5)
+            self.longitude = round(c_loc.longitude.data, 5)
         else:
             self.latitude = round(c_loc.latitude.data, 5)
             self.longitude = round(c_loc.longitude.data, 5)

@@ -66,7 +66,7 @@ class ShipDefenceArea(models.Model):
     """
     船只防区
     """
-    name = models.CharField(max_length=100, verbose_name='船名', unique=False, default='')
+    name = models.CharField(max_length=100, verbose_name='防区名', unique=False, default='')
     longitude = models.FloatField(verbose_name='经度')
     latitude = models.FloatField(verbose_name='纬度')
     radius = models.FloatField(verbose_name='防御半径')

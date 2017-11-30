@@ -1,5 +1,6 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -29,6 +30,7 @@
 
 <div id="myPageTop">
     <table>
+        <thead>
         <tr>
             <td>
                 <label>按关键字搜索：</label>
@@ -40,6 +42,8 @@
                 <label>搜索半径：(米)</label>
             </td>
         </tr>
+        </thead>
+
         <tr>
             <td>
                 <input class="form-control" type="text" placeholder="请输入关键字进行搜索" id="tipinput">
@@ -53,34 +57,33 @@
         </tr>
     </table>
 </div>
-{#<div class='button-group' style="background-color: #0d9bf2;right: 20px">#}
-{#    <input type="checkbox" onclick="toggleScale(this)"/>比例尺#}
-{#    <input type="checkbox" id="toolbar" onclick="toggleToolBar(this)"/>工具条#}
-{#    <input type="checkbox" id="toolbarDirection" disabled onclick="toggleToolBarDirection(this)"/>工具条方向盘#}
-{#    <input type="checkbox" id="toolbarRuler" disabled onclick="toggleToolBarRuler(this)"/>工具条标尺#}
-{#    <input type="checkbox" id="overview" onclick="toggleOverViewShow(this)"/>显示鹰眼#}
-{#    <input type="checkbox" id="overviewOpen" disabled onclick="toggleOverViewOpen(this)"/>展开鹰眼#}
-{#</div>#}
 
-{% load static %}
 
 <script>
-
     'use strict';
+    var WS_CMD = {'test': -1, 'area': 0};
+    var socket;
 
     function openWebSocket() {
-        var socket = new WebSocket("ws://" + window.location.host + "/");
+        socket = new WebSocket("ws://" + window.location.host + "/");
         socket.onmessage = function (e) {
             try {
                 var pos = JSON.parse(e.data);
                 addShip([pos.longitude, pos.latitude], 0)
-            }
-            catch (ex) {
+            } catch (ex) {
                 console.log("json parse:" + e.data + ",failed:" + ex.toString());
             }
         }
         socket.onopen = function () {
-            socket.send("start new connection");
+            var js = {'cmd': WS_CMD.test, "msg": "start new connection", 'json': ""};
+            socket.send(JSON.stringify(js));
+        }
+    }
+
+    function wsSend(cmd, msg, json) {
+        if (!checkElementIsNone(socket) && socket.readyState == WebSocket.OPEN) {
+            var js = {'cmd': cmd, "msg": msg, 'json': json};
+            socket.send(JSON.stringify(js));
         }
     }
 
@@ -104,8 +107,7 @@
                 circle.setRadius(r);
                 checkAllShipInRange();
             }
-        }
-        catch (ex) {
+        } catch (ex) {
         }
     }
 
@@ -120,23 +122,24 @@
         if (checkElementIsNone(circle) || checkElementIsNone(ship)) {
             return;
         }
-        ship.setIcon(circle.contains(ship.getPosition()) ?
-            "http://oyjbgqiy4.bkt.clouddn.com/ship.png" : "http://oyjbgqiy4.bkt.clouddn.com/redboat.png");
+        var isInArea = circle.contains(ship.getPosition());
+        ship.setTitle(isInArea ? "已方船只" : "未知船只");
+        ship.setIcon(isInArea ? "http://oyjbgqiy4.bkt.clouddn.com/ship.png" : "http://oyjbgqiy4.bkt.clouddn.com/blackship.png");
     }
 
     map.plugin('AMap.Geolocation', function () {
         var geolocation = new AMap.Geolocation({
-            enableHighAccuracy: true,//是否使用高精度定位，默认:true
-            timeout: 10000,          //超过10秒后停止定位，默认：无穷大
-            maximumAge: 0,           //定位结果缓存0毫秒，默认：0
-            convert: true,           //自动偏移坐标，偏移后的坐标为高德坐标，默认：true
-            showButton: true,        //显示定位按钮，默认：true
-            buttonPosition: 'LB',    //定位按钮停靠位置，默认：'LB'，左下角
-            buttonOffset: new AMap.Pixel(10, 20),//定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
-            showMarker: true,        //定位成功后在定位到的位置显示点标记，默认：true
-            showCircle: true,        //定位成功后用圆圈表示定位精度范围，默认：true
-            panToLocation: true,     //定位成功后将定位到的位置作为地图中心点，默认：true
-            zoomToAccuracy: true      //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
+            enableHighAccuracy: true, //是否使用高精度定位，默认:true
+            timeout: 10000, //超过10秒后停止定位，默认：无穷大
+            maximumAge: 0, //定位结果缓存0毫秒，默认：0
+            convert: true, //自动偏移坐标，偏移后的坐标为高德坐标，默认：true
+            showButton: true, //显示定位按钮，默认：true
+            buttonPosition: 'LB', //定位按钮停靠位置，默认：'LB'，左下角
+            buttonOffset: new AMap.Pixel(10, 20), //定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
+            showMarker: true, //定位成功后在定位到的位置显示点标记，默认：true
+            showCircle: true, //定位成功后用圆圈表示定位精度范围，默认：true
+            panToLocation: true, //定位成功后将定位到的位置作为地图中心点，默认：true
+            zoomToAccuracy: true //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
         });
         map.addControl(geolocation);
         geolocation.getCurrentPosition(function (status, geoResult) {
@@ -150,25 +153,38 @@
         var circle = new AMap.Circle({
             bubble: false,
             map: map,
-            center: pos,        //设置线覆盖物路径
-            radius: radius,//米
+            center: pos, //设置线覆盖物路径
+            radius: radius, //米
             strokeColor: "#3366FF", //边框线颜色
-            strokeOpacity: 0.3,       //边框线透明度
-            strokeWeight: 3,        //边框线宽
+            strokeOpacity: 0.3, //边框线透明度
+            strokeWeight: 3, //边框线宽
             fillColor: "#FFA500", //填充色
-            fillOpacity: 0.35//填充透明度
+            fillOpacity: 0.35,//填充透明度
         });
-        {#        http://lbs.amap.com/api/javascript-api/reference/plugin#AMap.CircleEditor#}
+        var extData = circle.getExtData();
+        extData['id'] = new Date().getTime().toString();
+        circle.setExtData(extData);
+        {#        http: //lbs.amap.com/api/javascript-api/reference/plugin#AMap.CircleEditor#}
         circle.on('dblclick', function (e) {
             map.plugin(["AMap.CircleEditor"], function (e) {
                 var ce = new AMap.CircleEditor(map, circle);
-                circle.setExtData({editor: ce});
+                var extData = circle.getExtData();
+                extData['editor'] = ce;
+                circle.setExtData(extData);
                 ce.open();
             });
         });
+
         circle.on('rightclick', function (e) {
-            if (circle.getExtData().editor) {
-                circle.getExtData().editor.close();
+            var extData = circle.getExtData()
+            if (extData.editor) {
+                extData.editor.close();
+                var json = {
+                    'id': extData.id,
+                    "lnglat": [circle.getCenter().getLng(), circle.getCenter().getLat()],
+                    "radius": circle.getRadius()
+                };
+                wsSend(WS_CMD.area, "", JSON.stringify(json));
             }
         });
 
@@ -181,18 +197,17 @@
 
     function addShip(pos, color) {
         var ship = new AMap.Marker({
-            {#            draggable:true,#}
+            draggable: true,
             position: pos,
-            title: color == 0 ? "已方船只" : "未知船只"
         });
         ship.setMap(map);
         ship.on('click', function () {
             infoWindow.open(map, ship.getPosition());
         });
+
         {#        AMap.event.addListener(ship, 'click', function () {#}
         {#            infoWindow.open(map, ship.getPosition());#}
         {#        });#}
-
         setShipIcon(circle, ship);
         shipList.push(ship);
     }
@@ -203,7 +218,7 @@
     content.push("电话：010-64733333");
     content.push("<a href='http://ditu.amap.com/detail/B000A8URXB?citycode=110105'>详细信息</a>");
     var infoWindow = new AMap.InfoWindow({
-        isCustom: true,  //使用自定义窗体
+        isCustom: true, //使用自定义窗体
         content: createInfoWindow(title, content.join("<br/>")),
         offset: new AMap.Pixel(16, -45)
     });
@@ -241,8 +256,44 @@
         watch: {
             circleRadius: setRadiusChange,
         }
-    })
+    });
     openWebSocket();
 </script>
+
+
+{% if not request.user.is_authenticated %}
+    <script>
+        $('#container').css({"opacity": "0.3"});
+        map.setStatus({dragEnable: false});
+    </script>
+
+    <div class="container" style="z-index: 10">
+        <div class="row clearfix">
+            <div class="col-md-4 col-sm-6 column col-sm-offset-2"
+                 style="position:absolute;padding: 50px;top: 40%;background-color: #006699; ">
+                <form method="post" role="form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="username" class="col-sm-2 control-label">用户名：</label>
+                        <div class="col-sm-10">
+                            <input class="form-control" type="text" id="username" name="username" placeholder="请输入名称">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="position: relative;top: 10px">
+                        <label for="password" class="col-sm-2 control-label">密码：</label>
+                        <div class="col-sm-10">
+                            <input class="form-control" type="password" id="password" name="password" placeholder="密码">
+                        </div>
+                    </div>
+                    <input type="submit" content="提交" style="position:absolute;left: 50%;vertical-align: bottom"/>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endif %}
+
 </body>
+
 </html>

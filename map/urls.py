@@ -15,12 +15,11 @@ Including another URLconf
 """
 from django.conf.urls import url
 
-from map import views
-from map.views_my import MyLoginView, MyLogoutView
+from map.views import MapIndexView, MapLoginView, MapLogoutView
 
 app_name = "map"
 urlpatterns = [
-     url(r'^$', views.index, name="index"),
-     url(r'^login/$', MyLoginView.as_view(), name="login"),
-     url(r'^logout/$', MyLogoutView.as_view(), name="logout"),
+    url(r'^$', MapIndexView.as_view(), name="index"),
+    url(r'^login/$', MapLoginView.as_view(), name="login"),
+    url(r'^logout/$', MapLogoutView.as_view(), name="logout"),
 ]
