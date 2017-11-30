@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'guardian',
     'map',
-    'sysadmin'
 ]
 
 # Django-guardian实现对象级别的权限控制：http://www.unionsmart.cn/archives/603
@@ -149,9 +148,9 @@ STATIC_URL = '/static/'
 LANGUAGES = (
     ('cn', _('China')),
 )
-LOGIN_URL = 'sysadmin:login'
-LOGOUT_REDIRECT_URL = 'sysadmin:index'
-LOGIN_REDIRECT_URL = 'sysadmin:index'
+LOGIN_URL = 'map:login'
+LOGOUT_REDIRECT_URL = 'map:index'
+LOGIN_REDIRECT_URL = 'map:index'
 
 # TODO:#文件上传跨磁盘访问
 # http://python.usyiyi.cn/documents/django_182/howto/static-files/index.html#serving-uploaded-files-in-development

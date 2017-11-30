@@ -37,7 +37,7 @@
                 <label>左击获取经纬度：</label>
             </td>
             <td class="column2">
-                <label>搜索半径：</label>
+                <label>搜索半径：(米)</label>
             </td>
         </tr>
         <tr>
@@ -98,8 +98,15 @@
     var shipList = [];
 
     function setRadiusChange(newRadius) {
-        circle.setRadius(parseFloat(newRadius));
-        checkAllShipInRange();
+        try {
+            var r = parseFloat(newRadius);
+            if (r != circle.getRadius()) {
+                circle.setRadius(r);
+                checkAllShipInRange();
+            }
+        }
+        catch (ex) {
+        }
     }
 
     function checkAllShipInRange() {
@@ -133,30 +140,58 @@
         });
         map.addControl(geolocation);
         geolocation.getCurrentPosition(function (status, geoResult) {
-            circle = new AMap.Circle({
-                map: map,
-                center: geoResult.position,          //设置线覆盖物路径
-                radius: document.getElementById("txtRadius").value,//米
-                strokeColor: "#3366FF", //边框线颜色
-                strokeOpacity: 0.3,       //边框线透明度
-                strokeWeight: 3,        //边框线宽
-                fillColor: "#FFA500", //填充色
-                fillOpacity: 0.35//填充透明度
-            });
-            addShip([geoResult.position.getLng(), geoResult.position.getLat()], 0)
+            circle = addCircle(geoResult.position, $("#txtRadius").val());
+            addShip(geoResult.position, 0)
             addShip([geoResult.position.getLng() + 0.002, geoResult.position.getLat() + 0.002], 1)
         });
     });
 
+    function addCircle(pos, radius) {
+        var circle = new AMap.Circle({
+            bubble: false,
+            map: map,
+            center: pos,        //设置线覆盖物路径
+            radius: radius,//米
+            strokeColor: "#3366FF", //边框线颜色
+            strokeOpacity: 0.3,       //边框线透明度
+            strokeWeight: 3,        //边框线宽
+            fillColor: "#FFA500", //填充色
+            fillOpacity: 0.35//填充透明度
+        });
+        {#        http://lbs.amap.com/api/javascript-api/reference/plugin#AMap.CircleEditor#}
+        circle.on('dblclick', function (e) {
+            map.plugin(["AMap.CircleEditor"], function (e) {
+                var ce = new AMap.CircleEditor(map, circle);
+                circle.setExtData({editor: ce});
+                ce.open();
+            });
+        });
+        circle.on('rightclick', function (e) {
+            if (circle.getExtData().editor) {
+                circle.getExtData().editor.close();
+            }
+        });
+
+        circle.on('change', function (e) {
+            checkAllShipInRange();
+            $("#txtRadius").val(circle.getRadius());
+        });
+        return circle;
+    }
+
     function addShip(pos, color) {
         var ship = new AMap.Marker({
+            {#            draggable:true,#}
             position: pos,
             title: color == 0 ? "已方船只" : "未知船只"
         });
         ship.setMap(map);
-        AMap.event.addListener(ship, 'click', function () {
+        ship.on('click', function () {
             infoWindow.open(map, ship.getPosition());
         });
+        {#        AMap.event.addListener(ship, 'click', function () {#}
+        {#            infoWindow.open(map, ship.getPosition());#}
+        {#        });#}
 
         setShipIcon(circle, ship);
         shipList.push(ship);

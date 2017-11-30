@@ -21,7 +21,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 urlpatterns = [
     # url(r'^$', map.views.index, name="index"),
     url(r'^', include('map.urls')),
-    url(r'^admin/', include('sysadmin.urls')),
+    # url(r'^admin/', include('sysadmin.urls')),
 ]
 urlpatterns += staticfiles_urlpatterns()
 # TODO:#加入磁盘访问路径

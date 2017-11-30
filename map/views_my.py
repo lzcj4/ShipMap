@@ -1,4 +1,3 @@
-
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView
 from django.http import HttpResponseRedirect, JsonResponse
@@ -6,8 +5,8 @@ from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from sysadmin.forms import MyAuthenticationForm, MyPasswordChangeForm
-from sysadmin.utils import add_test_user
+from map.forms import MyAuthenticationForm, MyPasswordChangeForm
+from map.utils import add_test_user
 
 
 class MyLoginView(LoginView):
@@ -34,8 +33,7 @@ class MyLoginView(LoginView):
     def form_valid(self, form):
         """Security check complete. Log the user in."""
         user = form.get_user()
-        # add_test_task(user)
-        add_test_user("")
+        #add_test_user("")
         login(self.request, user)
         return JsonResponse(
             {"code": 200, 'msg': "login view succeed,current user:{0}".format(user.username)})
@@ -43,11 +41,10 @@ class MyLoginView(LoginView):
 
 
 class MyLogoutView(LogoutView):
-    next_page = 'sysadmin:index'
+    next_page = 'map:index'
 
 
 class MyPasswordChangeView(PasswordChangeView):
     template_name = 'password_change.html'
-    success_url = reverse_lazy('sysadmin:index')
+    success_url = reverse_lazy('map:index')
     form_class = MyPasswordChangeForm
-

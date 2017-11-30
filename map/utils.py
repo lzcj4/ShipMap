@@ -1,19 +1,16 @@
 import os
 import re
+import time
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.template.defaultfilters import register
 from django.urls import reverse
-import time
 
 
 def add_test_user(user: User):
-    pass
-    # user = User.objects.create_user('test', 'test@icare.com', 'test')
-    # if not user:
-    #     user.set_password("admin")
-    #     user.save()
+    user = User.objects.create_user('admin', 'admin@icare.com', 'admin', is_superuser=True)
+    user = User.objects.create_user('test', 'test@icare.com', 'test')
 
 
 COORDINATE_RATE = 60.0
