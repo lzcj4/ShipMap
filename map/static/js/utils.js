@@ -74,6 +74,8 @@ function RadarShipsDict() {
         if (items == null) {
             items = [ship];
             radarDict.put(radarName, items);
+        } else {
+            items.push(ship);
         }
     };
 
@@ -81,7 +83,7 @@ function RadarShipsDict() {
         var result = [];
         var items = radarDict.getItems();
         for (var k in items) {
-            result.concat(items[k]);
+            result = result.concat(items[k]);
         }
         return result;
     };

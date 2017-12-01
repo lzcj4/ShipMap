@@ -53,16 +53,16 @@ function addShipByRadar(radarItems) {
 
     var radarName = radarItems.radar;
     var items = radarItems.items;
-    clearShips(radarShipDict.get(radarName));
+    // clearShips(radarShipDict.get(radarName));
     for (var i in items) {
         var lnglat = items[i];
         var pos = new AMap.LngLat(lnglat.longitude, lnglat.latitude);
         var lngDist = Math.cos(lnglat.direction / 180) * lnglat.distance;
         var latDist = Math.sin(lnglat.direction / 180) * lnglat.distance;
         var newPos = pos.offset(lngDist, latDist);
-        var ship = getShip(radarName, newPos);
+        var ship = getShip(newPos);
         if (ship == null) {
-            addShip(newPos);
+            addShip(radarName, newPos);
         } else {
             ship.setPosition(newPos);
         }

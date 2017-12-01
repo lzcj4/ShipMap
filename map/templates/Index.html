@@ -97,7 +97,7 @@
                 console.log("json parse:" + e.data + ",failed:" + ex.toString());
             }
         };
-        
+
         socket.onopen = function () {
             wsSend(WS_CMD.connect, "start new connection", "");
         };
