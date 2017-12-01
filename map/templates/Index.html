@@ -61,7 +61,7 @@
 
 <script>
     'use strict';
-    var SHIP_IDENTIFY_DISTANCE = 200;
+    var SHIP_IDENTIFY_DISTANCE = 50;
     var WS_CMD = {'connect': 0, 'area': 1, 'radar': 2};
     var socket;
 
@@ -80,26 +80,31 @@
                         checkAllShipInArea();
                         break;
                     case WS_CMD.radar:
-                        var lnglat = jsonObj.json;
-                        if (lnglat == null) {
+                        var items = jsonObj.json;
+                        if (items == null) {
                             return;
                         }
-                        var pos = new AMap.LngLat(lnglat.longitude, lnglat.latitude);
-                        var lngDist = Math.cos(lnglat.direction / 180) * lnglat.distance;
-                        var latDist = Math.sin(lnglat.direction / 180) * lnglat.distance;
-                        var newPos=pos.offset(lngDist, latDist);
-                        var ship = getShip(newPos);
-                        if (ship == null) {
-                            addShip(newPos);
-                        } else {
-                            ship.setPosition(newPos);
+                        for (var i in items) {
+                            var lnglat = items[i];
+                            var pos = new AMap.LngLat(lnglat.longitude, lnglat.latitude);
+                            var lngDist = Math.cos(lnglat.direction / 180) * lnglat.distance;
+                            var latDist = Math.sin(lnglat.direction / 180) * lnglat.distance;
+                            var newPos = pos.offset(lngDist, latDist);
+                            var ship = getShip(newPos);
+                            if (ship == null) {
+                                addShip(newPos);
+                            } else {
+                                ship.setPosition(newPos);
+                            }
                         }
                         checkAllShipInArea();
                         break;
                     default:
                         break;
                 }
-            } catch (ex) {
+            }
+            catch
+                (ex) {
                 console.log("json parse:" + e.data + ",failed:" + ex.toString());
             }
         }

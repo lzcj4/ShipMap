@@ -122,6 +122,7 @@ class RadarReceiver:
         index += 4
 
         data_len = int(ri.data)
+        loc_list = []
         for i in range(data_len):
             item_data = data[index:index + RadarReceiver.DATA_LEN]
             if len(item_data) != RadarReceiver.DATA_LEN:
@@ -141,9 +142,11 @@ class RadarReceiver:
             loc.direction.chunk[:] = item_data[7 * 4: 8 * 4]
 
             l = Location(loc)
-            if self.callback:
-                self.callback(l.to_json())
+            loc_list.append(l.to_json())
             print("- - {0}、{1}".format(i, l))
+
+        if self.callback:
+            self.callback(loc_list)
 
 
 if __file__ == "__main__":
