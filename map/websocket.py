@@ -16,6 +16,7 @@ WS_CMD = JSONObject({'connect': 0, 'area': 1, 'radar': 2})
 
 
 def ws_connect(message: Message):
+    """该回调不能用，导致WS连接挂掉，CHROME崩"""
     Group("radar").add(message.reply_channel)
     print("ws_connect:{0}".format(message.content['client']))
 
@@ -25,7 +26,7 @@ def ws_send(txt):
         Group("radar").send({"text": txt}, immediately=True)
 
 
-def ws_radar_lnglat(json_obj):
+def ws_send_radar_lnglat(json_obj):
     if json_obj:
         js_msg = {'cmd': WS_CMD.radar, "msg": "get a new radar lnglat", 'json': json_obj}
         ws_send(json.dumps(js_msg))
@@ -62,7 +63,7 @@ def start_radar():
     if is_radar_running:
         return
 
-    radar.set_callback(ws_radar_lnglat)
+    radar.set_callback(ws_send_radar_lnglat)
     radar.start_radar_receiver()
     is_radar_running = True
 
