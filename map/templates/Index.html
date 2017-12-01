@@ -60,8 +60,8 @@
 {% block js %}
     {% load static %}
     <script src="{% static "js/map.api.js" %}"></script>
-    <script src="{% static "js/ship.api.js" %}"></script>
-    {#        <script src="{% static "js/map.toolbar.js" %}"></script>#}
+    <script src="{% static "js/ship.js" %}"></script>
+    <script src="{% static "js/map.toolbar.js" %}"></script>
 {% endblock js %}
 
 <script>
@@ -71,6 +71,7 @@
 
     function openWebSocket() {
         socket = new WebSocket("ws://" + window.location.host + "/");
+
         socket.onmessage = function (e) {
             try {
                 var jsonObj = JSON.parse(e.data);
@@ -85,24 +86,7 @@
                         break;
                     case WS_CMD.radar:
                         var items = jsonObj.json;
-                        if (items == null) {
-                            return;
-                        }
-                        clearShips();
-                        for (var i in items) {
-                            var lnglat = items[i];
-                            var pos = new AMap.LngLat(lnglat.longitude, lnglat.latitude);
-                            var lngDist = Math.cos(lnglat.direction / 180) * lnglat.distance;
-                            var latDist = Math.sin(lnglat.direction / 180) * lnglat.distance;
-                            var newPos = pos.offset(lngDist, latDist);
-                            var ship = getShip(newPos);
-                            if (ship == null) {
-                                addShip(newPos);
-                            } else {
-                                ship.setPosition(newPos);
-                            }
-                        }
-                        checkAllShipInArea();
+                        addShipByRadar(items);
                         break;
                     default:
                         break;
@@ -112,10 +96,11 @@
                 (ex) {
                 console.log("json parse:" + e.data + ",failed:" + ex.toString());
             }
-        }
+        };
+        
         socket.onopen = function () {
             wsSend(WS_CMD.connect, "start new connection", "");
-        }
+        };
     }
 
     function wsSend(cmd, msg, json) {

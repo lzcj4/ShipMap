@@ -72,6 +72,7 @@ class RadarReceiver:
         self.port = port
         self.items = []
         self.callback = None
+        self.name = "radar_1"
 
     def set_callback(self, callback):
         self.callback = callback
@@ -143,8 +144,9 @@ class RadarReceiver:
             loc_list.append(l.to_json())
             print("- - {0}、{1}".format(i, l))
 
+        radar_dic = {"radar": self.name, "items": loc_list}
         if self.callback:
-            self.callback(loc_list)
+            self.callback(radar_dic)
 
 
 if __file__ == "__main__":

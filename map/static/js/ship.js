@@ -2,9 +2,9 @@ var SHIP_IDENTIFY_DISTANCE = 50;
 
 var currentCircle;
 var circleList = [];
-var shipList = [];
+var radarShipDict = new RadarShipsDict();
 
-function addShip(pos) {
+function addShip(radar, pos) {
     var ship = new AMap.Marker({
         draggable: true,
         position: pos,
@@ -18,7 +18,7 @@ function addShip(pos) {
     //     infoWindow.open(map, ship.getPosition());
     // });
     setShipIcon(ship);
-    shipList.push(ship);
+    radarShipDict.put(radar, ship);
 }
 
 function setShipIcon(ship) {
@@ -33,8 +33,9 @@ function setShipIcon(ship) {
 
 function getShip(lnglat) {
     var result = null;
-    for (var i in shipList) {
-        var ship = shipList[i];
+    var allShip = radarShipDict.items();
+    for (var i in allShip) {
+        var ship = allShip[i];
         var distance = ship.getPosition().distance(lnglat);
         console.log("get ship distance:" + distance);
         if (distance <= SHIP_IDENTIFY_DISTANCE) {
@@ -43,6 +44,30 @@ function getShip(lnglat) {
         }
     }
     return result;
+}
+
+function addShipByRadar(radarItems) {
+    if (radarItems == null) {
+        return;
+    }
+
+    var radarName = radarItems.radar;
+    var items = radarItems.items;
+    clearShips(radarShipDict.get(radarName));
+    for (var i in items) {
+        var lnglat = items[i];
+        var pos = new AMap.LngLat(lnglat.longitude, lnglat.latitude);
+        var lngDist = Math.cos(lnglat.direction / 180) * lnglat.distance;
+        var latDist = Math.sin(lnglat.direction / 180) * lnglat.distance;
+        var newPos = pos.offset(lngDist, latDist);
+        var ship = getShip(radarName, newPos);
+        if (ship == null) {
+            addShip(newPos);
+        } else {
+            ship.setPosition(newPos);
+        }
+    }
+    checkAllShipInArea();
 }
 
 function setRadiusChange(newRadius) {
@@ -71,17 +96,26 @@ function checkPositionInArea(pos) {
 }
 
 function checkAllShipInArea() {
-    for (var index in shipList) {
-        var ship = shipList[index];
+    var allShip = radarShipDict.items();
+    for (var index in allShip) {
+        var ship = allShip[index];
         setShipIcon(ship)
     }
 }
 
-function clearShips() {
-    map.remove(shipList);
-    shipList.length = 0;
-}
+// function clearShips() {
+//     radarShipDict.clear();
+//     map.remove(shipList);
+//     shipList.length = 0;
+// }
 
+function clearShips(ships) {
+    if (ships == null || ships.length == 0) {
+        return;
+    }
+    map.remove(ships);
+    ships.length = 0;
+}
 
 function addCircle(pos, radius, id) {
     var circle = new AMap.Circle({
