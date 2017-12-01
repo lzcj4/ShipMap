@@ -1,15 +1,13 @@
-import json
-
 from map.models import ShipDefenceArea
 
 
-def get_all_areas():
+def get_all_area():
     items = ShipDefenceArea.objects.all()
     result = []
     for item in items:
         item_props = {"id": item.name, "longitude": item.longitude, "latitude": item.latitude, "radius": item.radius}
         result.append(item_props)
-    return json.dumps(result)
+    return result
 
 
 def add_or_update_area(json_obj):

@@ -61,7 +61,8 @@
 
 <script>
     'use strict';
-    var WS_CMD = {'connect': 0, 'area': 1};
+    var SHIP_IDENTIFY_DISTANCE = 200;
+    var WS_CMD = {'connect': 0, 'area': 1, 'radar': 2};
     var socket;
 
     function openWebSocket() {
@@ -70,17 +71,34 @@
             try {
                 var jsonObj = JSON.parse(e.data);
                 switch (jsonObj.cmd) {
-                    case WS_CMD.connect:
-                        break;
                     case WS_CMD.area:
-                        var items = JSON.parse(jsonObj.json);
+                        var items = jsonObj.json;
                         for (var i in items) {
                             var item = items[i];
                             addCircle([item.longitude, item.latitude], item.radius, item.id);
                         }
                         checkAllShipInArea();
+                        break;
+                    case WS_CMD.radar:
+                        var lnglat = jsonObj.json;
+                        if (lnglat == null) {
+                            return;
+                        }
+                        var pos = new AMap.LngLat(lnglat.longitude, lnglat.latitude);
+                        var lngDist = Math.cos(lnglat.direction / 180) * lnglat.distance;
+                        var latDist = Math.sin(lnglat.direction / 180) * lnglat.distance;
+                        var newPos=pos.offset(lngDist, latDist);
+                        var ship = getShip(newPos);
+                        if (ship == null) {
+                            addShip(newPos);
+                        } else {
+                            ship.setPosition(newPos);
+                        }
+                        checkAllShipInArea();
+                        break;
+                    default:
+                        break;
                 }
-                {#                addShip([pos.longitude, pos.latitude], 0)#}
             } catch (ex) {
                 console.log("json parse:" + e.data + ",failed:" + ex.toString());
             }
@@ -154,6 +172,20 @@
         ship.setIcon(isInArea ? "http://oyjbgqiy4.bkt.clouddn.com/ship.png" : "http://oyjbgqiy4.bkt.clouddn.com/blackship.png");
     }
 
+    function getShip(lnglat) {
+        var result = null;
+        for (var i in shipList) {
+            var ship = shipList[i];
+            var distance = ship.getPosition().distance(lnglat);
+            console.log("get ship distance:" + distance);
+            if (distance <= SHIP_IDENTIFY_DISTANCE) {
+                result = ship;
+                break;
+            }
+        }
+        return result;
+    }
+
     map.plugin('AMap.Geolocation', function () {
         var geolocation = new AMap.Geolocation({
             enableHighAccuracy: true, //是否使用高精度定位，默认:true
@@ -190,7 +222,7 @@
             fillColor: "#FFA500", //填充色
             fillOpacity: 0.35,//填充透明度
         });
-        var extData = circle.getExtData();
+        var extData = {};
         if (!checkElementIsNone(id)) {
             extData['id'] = id;
         }
@@ -232,7 +264,7 @@
         return circle;
     }
 
-    function addShip(pos, color) {
+    function addShip(pos) {
         var ship = new AMap.Marker({
             draggable: true,
             position: pos,

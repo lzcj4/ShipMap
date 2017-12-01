@@ -2,13 +2,10 @@ import json
 import random
 import socket
 import threading
-
 from ctypes import (
     Structure, Union, Array,
     c_float, c_byte
 )
-
-from channels import Group
 
 from ShipMap import settings
 
@@ -38,6 +35,8 @@ class Location(object):
         if settings.DEBUG:
             self.latitude = round(c_loc.latitude.data, 5)
             self.longitude = round(c_loc.longitude.data, 5)
+            # self.latitude = round(c_loc.latitude.data, 5) + random.random() / 100
+            # self.longitude = round(c_loc.longitude.data, 5) + random.random() / 100
         else:
             self.latitude = round(c_loc.latitude.data, 5)
             self.longitude = round(c_loc.longitude.data, 5)
@@ -54,8 +53,7 @@ class Location(object):
             self.orientation, self.height, self.speed, self.direction)
 
     def to_json(self):
-        js = json.dumps(self.__dict__)
-        return js
+        return self.__dict__
 
 
 HOST = '127.0.0.1'
@@ -75,9 +73,10 @@ class RadarReceiver:
         self.host = host
         self.port = port
         self.items = []
+        self.callback = None
 
-    def get_items(self):
-        return self.items
+    def set_callback(self, callback):
+        self.callback = callback
 
     def start_radar_receiver(self):
         """
@@ -123,25 +122,31 @@ class RadarReceiver:
         index += 4
 
         data_len = int(ri.data)
-        self.host = "aaaa"
         for i in range(data_len):
-            data_item = data[index:index + RadarReceiver.DATA_LEN]
-            if len(data_item) != RadarReceiver.DATA_LEN:
+            item_data = data[index:index + RadarReceiver.DATA_LEN]
+            if len(item_data) != RadarReceiver.DATA_LEN:
                 break
             index += RadarReceiver.DATA_LEN
 
             loc = C_Location()
-            loc.latitude.chunk[:] = data_item[0 * 4: 1 * 4]
-            loc.longitude.chunk[:] = data_item[1 * 4: 2 * 4]
-            loc.altitude.chunk[:] = data_item[2 * 4: 3 * 4]
+            loc.latitude.chunk[:] = item_data[0 * 4: 1 * 4]
+            loc.longitude.chunk[:] = item_data[1 * 4: 2 * 4]
+            loc.altitude.chunk[:] = item_data[2 * 4: 3 * 4]
 
-            loc.distance.chunk[:] = data_item[3 * 4: 4 * 4]
-            loc.orientation.chunk[:] = data_item[4 * 4: 5 * 4]
-            loc.height.chunk[:] = data_item[5 * 4: 6 * 4]
-            loc.speed.chunk[:] = data_item[6 * 4: 7 * 4]
+            loc.distance.chunk[:] = item_data[3 * 4: 4 * 4]
+            loc.orientation.chunk[:] = item_data[4 * 4: 5 * 4]
+            loc.height.chunk[:] = item_data[5 * 4: 6 * 4]
+            loc.speed.chunk[:] = item_data[6 * 4: 7 * 4]
 
-            loc.direction.chunk[:] = data_item[7 * 4: 8 * 4]
+            loc.direction.chunk[:] = item_data[7 * 4: 8 * 4]
 
             l = Location(loc)
-            Group("radar").send({"text": l.to_json()}, immediately=True)
-            print("- - {0}、{1};{2}".format(i, l, l.to_json()))
+            if self.callback:
+                self.callback(l.to_json())
+            print("- - {0}、{1}".format(i, l))
+
+
+if __file__ == "__main__":
+    radar = RadarReceiver()
+    radar.start_radar_receiver()
+    a = input("press any key to stop radar receiver:")
