@@ -149,7 +149,7 @@ class RadarReceiver:
             self.callback(radar_dic)
 
 
-if __file__ == "__main__":
+if __name__ == "__main__":
     radar = RadarReceiver()
     radar.start_radar_receiver()
     a = input("press any key to stop radar receiver:")
