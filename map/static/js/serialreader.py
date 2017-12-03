@@ -1,13 +1,15 @@
 import serial
 
 
+is_reading=True;
 def read_serial():
     ser = serial.Serial(  # 下面这些参数根据情况修改
         port='COM5',
         baudrate=115200,
         parity=serial.PARITY_ODD,
         stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS
+        bytesize=serial.EIGHTBITS,
+        timeout=5,
     )
 
     while ser.inWaiting() > 0:
