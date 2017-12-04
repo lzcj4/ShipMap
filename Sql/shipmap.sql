@@ -1,5 +1,5 @@
 ﻿# Host: localhost  (Version 5.7.19)
-# Date: 2017-12-01 10:57:39
+# Date: 2017-12-04 18:04:37
 # Generator: MySQL-Front 6.0  (Build 2.20)
 
 
@@ -82,7 +82,7 @@ INSERT INTO `django_session` (`session_key`,`session_data`,`expire_date`) VALUES
 # Data for table "map_shipdefencearea"
 #
 
-INSERT INTO `map_shipdefencearea` (`id`,`name`,`longitude`,`latitude`,`radius`) VALUES (2,'1512037546002',120.01561,30.2827,1634),(3,'1512044499922',120.06228,30.261574,1898);
+INSERT INTO `map_shipdefencearea` (`id`,`name`,`longitude`,`latitude`,`radius`) VALUES (5,'1512381819316',120.01559,30.28269,406);
 
 #
 # Data for table "map_shiproute"

@@ -27,7 +27,7 @@ map.plugin('AMap.Geolocation', function () {
     });
     map.addControl(geolocation);
     geolocation.getCurrentPosition(function (status, geoResult) {
-        // addCircle(geoResult.position, $("#txtRadius").val());
+        //addCircle(geoResult.position, $("#txtRadius").val());
         // circleList.push(circle);
         addShipByRadar("radar_test", geoResult.position);
         addShipByRadar("radar_test", [geoResult.position.getLng() + 0.002, geoResult.position.getLat() + 0.002]);
