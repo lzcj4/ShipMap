@@ -1,7 +1,10 @@
 import serial
 
+from map.templates.BDReceiver import BDReceiver
 
-is_reading=True;
+is_reading = True
+
+
 def read_serial():
     ser = serial.Serial(  # 下面这些参数根据情况修改
         port='COM5',
@@ -11,12 +14,14 @@ def read_serial():
         bytesize=serial.EIGHTBITS,
         timeout=5,
     )
-
+    bd = BDReceiver()
     while ser.inWaiting() > 0:
         # read_bytes = ser.read(256)
-        read_line = ser.readline()
-        if len(read_line) > 0:
-            print(read_line)
+        byte_line = ser.readline()
+        if len(byte_line) > 0:
+            str_len = str(byte_line, "utf-8")
+            loc = bd.parse(str_len)
+            print(byte_line)
 
 
 if __name__ == "__main__":

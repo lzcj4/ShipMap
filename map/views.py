@@ -32,8 +32,13 @@ class MapLoginView(LoginView):
         return context
 
 
-class MapIndexView(MapLoginView):
+class MapIndexView(LoginView):
     template_name = "index.html"
+    form_class = MyAuthenticationForm
+    success_url = "index.html"
+
+    def form_valid(self, form):
+        return super(MapIndexView, self).form_valid(form)
 
 
 class MapLogoutView(LogoutView):

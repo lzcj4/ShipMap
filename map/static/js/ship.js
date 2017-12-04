@@ -103,12 +103,6 @@ function checkAllShipInArea() {
     }
 }
 
-// function clearShips() {
-//     radarShipDict.clear();
-//     map.remove(shipList);
-//     shipList.length = 0;
-// }
-
 function clearShips(ships) {
     if (ships == null || ships.length == 0) {
         return;
@@ -143,27 +137,43 @@ function addCircle(pos, radius, id) {
     circle.on('dblclick', function (e) {
         map.plugin(["AMap.CircleEditor"], function (e) {
             currentCircle = circle;
-            var ce = new AMap.CircleEditor(map, circle);
-            var extData = circle.getExtData();
-            extData['editor'] = ce;
-            circle.setExtData(extData);
-            ce.open();
+            var extData = circle.getExtData()
+            if (extData.editor) {
+                extData.editor.close();
+                extData['editor'] = null;
+                var json = {
+                    'id': extData.id,
+                    "lnglat": [circle.getCenter().getLng(), circle.getCenter().getLat()],
+                    "radius": circle.getRadius()
+                };
+                wsSend(WS_CMD.area, "", JSON.stringify(json));
+            } else {
+                var ce = new AMap.CircleEditor(map, circle);
+                var extData = circle.getExtData();
+                extData['editor'] = ce;
+                circle.setExtData(extData);
+                ce.open();
+            }
         });
     });
 
     circle.on('rightclick', function (e) {
-        currentCircle = null;
-        var extData = circle.getExtData()
-        if (extData.editor) {
-            extData.editor.close();
-            var json = {
-                'id': extData.id,
-                "lnglat": [circle.getCenter().getLng(), circle.getCenter().getLat()],
-                "radius": circle.getRadius()
-            };
-            wsSend(WS_CMD.area, "", JSON.stringify(json));
+            currentCircle = null;
+            map.remove(circle);
+            for (var i in circleList) {
+                if (circleList[i] == circle) {
+                    delete  circleList[i];
+                    circleList.length -= 1;
+                    var extData = circle.getExtData();
+                    if (extData.id) {
+                        var json = {'id': extData.id,};
+                        wsSend(WS_CMD.delete_area, "", JSON.stringify(json));
+                    }
+                    return;
+                }
+            }
         }
-    });
+    );
 
     circle.on('change', function (e) {
         checkAllShipInArea();
