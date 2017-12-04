@@ -33,6 +33,7 @@ class BDReceiver(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.name = "BDReceiver_thread_1"
+        self.is_running = True
         self.current_id = None
         self.current_location = None
         self.callback = None
@@ -41,8 +42,12 @@ class BDReceiver(Thread):
         self.callback = callback
 
     def run(self):
-        self.mock_run()
-        # self.read_serial()
+        # self.mock_run()
+        self.is_running = True
+        self.read_serial()
+
+    def stop(self):
+        self.is_running = False
 
     def mock_run(self):
         time.sleep(10)
@@ -113,21 +118,28 @@ class BDReceiver(Thread):
                 print(loc)
 
     def read_serial(self):
-        ser = serial.Serial(  # 下面这些参数根据情况修改
-            port=READ_COM,
-            baudrate=115200,
-            parity=serial.PARITY_ODD,
-            stopbits=serial.STOPBITS_ONE,
-            bytesize=serial.EIGHTBITS,
-            timeout=5,
-        )
-        while ser.inWaiting() > 0:
-            # read_bytes = ser.read(256)
-            byte_line = ser.readline()
-            if len(byte_line) > 0:
-                str_len = str(byte_line, "utf-8")
-                print(str_len)
-                loc = self.parse(str_len)
+        with serial.Serial(port=READ_COM, baudrate=115200) as ser:
+            print("/---- COM5 start  reading")
+            while self.is_running:
+                if ser.inWaiting() == 0:
+                    continue;
+
+                byte_line = ser.readline()
+                if len(byte_line) > 0:
+                    try:
+                        utf_str = str(byte_line, "utf-8")
+                        # print(utf_str)
+                        loc = self.parse(utf_str)
+
+                        if loc:
+                            print(loc)
+                            if loc.lat != 0 and loc.lng != 0 and self.callback:
+                                self.callback([loc.to_json()])
+                    except BaseException as ex:
+                        print(ex)
+                        continue
+
+        print("/******* COM5 read exit")
 
     def parse(self, txt):
         id = self.get_id(txt)
