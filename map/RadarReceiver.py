@@ -150,6 +150,6 @@ class RadarReceiver:
 
 
 if __name__ == "__main__":
-    radar = RadarReceiver()
-    radar.start_radar_receiver()
+    radar_receiver = RadarReceiver()
+    radar_receiver.start_radar_receiver()
     a = input("press any key to stop radar receiver:")

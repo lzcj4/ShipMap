@@ -4,6 +4,7 @@ from channels import Group
 from channels.message import Message
 
 from map.RadarReceiver import RadarReceiver
+from map.templates.BDReceiver import BDReceiver
 from map.wshandler import add_or_update_area, get_all_area, remove_area
 
 
@@ -12,7 +13,7 @@ class JSONObject:
         self.__dict__ = d
 
 
-WS_CMD = JSONObject({'connect': 0, 'area': 1, 'radar': 2, 'delete_area': 3})
+WS_CMD = JSONObject({'connect': 0, 'area': 1, 'radar': 2, 'area_delete': 3, 'beidou': 4})
 
 
 def ws_connect(message: Message):
@@ -27,8 +28,24 @@ def ws_send(txt):
 
 
 def ws_send_radar_lnglat(json_obj):
+    """
+    发送雷达定位数据
+    :param json_obj:
+    :return:
+    """
     if json_obj:
         js_msg = {'cmd': WS_CMD.radar, "msg": "get a new radar lnglat", 'json': json_obj}
+        ws_send(json.dumps(js_msg))
+
+
+def ws_send_bd_lnglat(json_obj):
+    """
+    发送北半定位数据
+    :param json_obj:
+    :return:
+    """
+    if json_obj:
+        js_msg = {'cmd': WS_CMD.beidou, "msg": "get a new bd lnglat", 'json': json_obj}
         ws_send(json.dumps(js_msg))
 
 
@@ -45,7 +62,7 @@ def ws_message(message: Message):
     elif txt_obj.cmd == WS_CMD.area:
         json_obj = json.loads(txt_obj.json, object_hook=JSONObject)
         add_or_update_area(json_obj)
-    elif txt_obj.cmd == WS_CMD.delete_area:
+    elif txt_obj.cmd == WS_CMD.area_delete:
         json_obj = json.loads(txt_obj.json, object_hook=JSONObject)
         remove_area(json_obj)
     else:
@@ -58,17 +75,21 @@ def ws_disconnect(message: Message):
 
 
 is_radar_running = False
-radar = RadarReceiver()
+radar_receiver = RadarReceiver()
+bd_receiver = BDReceiver()
 
 
-def start_radar():
-    global is_radar_running, radar
+def start_receiver():
+    global is_radar_running, radar_receiver
     if is_radar_running:
         return
 
-    radar.set_callback(ws_send_radar_lnglat)
-    radar.start_radar_receiver()
+    bd_receiver.set_callback(ws_send_bd_lnglat)
+    bd_receiver.start()
+
+    radar_receiver.set_callback(ws_send_radar_lnglat)
+    radar_receiver.start_radar_receiver()
     is_radar_running = True
 
 
-start_radar()
+start_receiver()

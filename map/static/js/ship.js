@@ -4,7 +4,7 @@ var currentCircle;
 var circleList = [];
 var radarShipDict = new RadarShipsDict();
 
-function addShip(radar, pos) {
+function addShipByRadar(radar, pos) {
     var ship = new AMap.Marker({
         draggable: true,
         position: pos,
@@ -20,6 +20,64 @@ function addShip(radar, pos) {
     setShipIcon(ship);
     radarShipDict.put(radar, ship);
 }
+
+function addShipByRadarItems(radarItems) {
+    if (radarItems == null) {
+        return;
+    }
+
+    var radarName = radarItems.radar;
+    var items = radarItems.items;
+    // clearShips(radarShipDict.get(radarName));
+    for (var i in items) {
+        var lnglat = items[i];
+        var pos = new AMap.LngLat(lnglat.longitude, lnglat.latitude);
+        var lngDist = Math.cos(lnglat.direction / 180) * lnglat.distance;
+        var latDist = Math.sin(lnglat.direction / 180) * lnglat.distance;
+        var newPos = pos.offset(lngDist, latDist);
+        var ship = getShip(newPos);
+        if (ship == null) {
+            addShipByRadar(radarName, newPos);
+        } else {
+            ship.setPosition(newPos);
+        }
+    }
+    checkAllShipInArea();
+}
+
+function addShipByBeidou(loc) {
+    var ship = new AMap.Marker({
+        draggable: true,
+        position: [loc.lng, loc.lat],
+    });
+    ship.setMap(map);
+    ship.on('click', function () {
+        infoWindow.open(map, ship.getPosition());
+    });
+    var extData = {"info": loc};
+    ship.setExtData(extData);
+    setShipIcon(ship);
+    radarShipDict.put("beidou", ship);
+}
+
+function addShipByBeiDouItems(items) {
+    if (items == null) {
+        return;
+    }
+    // clearShips(radarShipDict.get(radarName));
+    for (var i in items) {
+        var loc = items[i];
+        var pos = new AMap.LngLat(loc.lng, loc.lat);
+        var ship = getShipById(loc.id);
+        if (ship == null) {
+            addShipByBeidou(loc);
+        } else {
+            ship.setPosition(pos);
+        }
+    }
+    checkAllShipInArea();
+}
+
 
 function setShipIcon(ship) {
     if (checkElementIsNone(ship)) {
@@ -46,29 +104,21 @@ function getShip(lnglat) {
     return result;
 }
 
-function addShipByRadar(radarItems) {
-    if (radarItems == null) {
-        return;
-    }
-
-    var radarName = radarItems.radar;
-    var items = radarItems.items;
-    // clearShips(radarShipDict.get(radarName));
-    for (var i in items) {
-        var lnglat = items[i];
-        var pos = new AMap.LngLat(lnglat.longitude, lnglat.latitude);
-        var lngDist = Math.cos(lnglat.direction / 180) * lnglat.distance;
-        var latDist = Math.sin(lnglat.direction / 180) * lnglat.distance;
-        var newPos = pos.offset(lngDist, latDist);
-        var ship = getShip(newPos);
-        if (ship == null) {
-            addShip(radarName, newPos);
-        } else {
-            ship.setPosition(newPos);
+function getShipById(id) {
+    var result = null;
+    var allShip = radarShipDict.get("beidou");
+    for (var i in allShip) {
+        var ship = allShip[i];
+        var extData = ship.getExtData();
+        if (extData["info"].id == id) {
+            result = ship;
+            break;
         }
     }
-    checkAllShipInArea();
+    return result;
 }
+
+
 
 function setRadiusChange(newRadius) {
     try {
@@ -167,7 +217,7 @@ function addCircle(pos, radius, id) {
                     var extData = circle.getExtData();
                     if (extData.id) {
                         var json = {'id': extData.id,};
-                        wsSend(WS_CMD.delete_area, "", JSON.stringify(json));
+                        wsSend(WS_CMD.area_delete, "", JSON.stringify(json));
                     }
                     return;
                 }
