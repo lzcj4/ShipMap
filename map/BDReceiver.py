@@ -122,7 +122,7 @@ class BDReceiver(Thread):
             print("/---- COM5 start  reading")
             while self.is_running:
                 if ser.inWaiting() == 0:
-                    continue;
+                    continue
 
                 byte_line = ser.readline()
                 if len(byte_line) > 0:
@@ -142,15 +142,15 @@ class BDReceiver(Thread):
         print("/******* COM5 read exit")
 
     def parse(self, txt):
-        id = self.get_id(txt)
-        if id:
-            self.current_id = id
+        bd_id = self.get_id(txt)
+        if bd_id:
+            self.current_id = bd_id
             if self.current_location:
-                self.current_location.id = id
+                self.current_location.id = bd_id
 
-        loc = self.get_location(txt)
-        if loc:
-            self.current_location = loc
+        bd_loc = self.get_location(txt)
+        if bd_loc:
+            self.current_location = bd_loc
             if self.current_id:
                 self.current_location.id = self.current_id
 

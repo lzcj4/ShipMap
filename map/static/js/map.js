@@ -22,6 +22,7 @@ map.plugin('AMap.Geolocation', function () {
         buttonOffset: new AMap.Pixel(10, 20), //定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
         showMarker: true, //定位成功后在定位到的位置显示点标记，默认：true
         showCircle: true, //定位成功后用圆圈表示定位精度范围，默认：true
+        // circleOptions: {radius: 200},
         panToLocation: true, //定位成功后将定位到的位置作为地图中心点，默认：true
         zoomToAccuracy: true //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
     });
@@ -34,6 +35,7 @@ map.plugin('AMap.Geolocation', function () {
             addShipByRadar("radar_test", [geoResult.position.getLng() + 0.002, geoResult.position.getLat() + 0.002]);
             checkAllShipInArea();
         }
+        console.log("status:" + status + "; geoResult: " + geoResult.message);
     });
 });
 

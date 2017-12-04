@@ -6,7 +6,7 @@ var radarShipDict = new RadarShipsDict();
 
 function addShipByRadar(radar, pos) {
     var ship = new AMap.Marker({
-        draggable: true,
+        draggable: false,
         position: pos,
     });
     ship.setMap(map);
