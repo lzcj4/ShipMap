@@ -1,6 +1,6 @@
 import serial
 
-from map.templates.BDReceiver import BDReceiver
+from map.BDReceiver import BDReceiver
 
 is_reading = True
 

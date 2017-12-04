@@ -3,8 +3,8 @@ import json
 from channels import Group
 from channels.message import Message
 
+from map.BDReceiver import BDReceiver
 from map.RadarReceiver import RadarReceiver
-from map.templates.BDReceiver import BDReceiver
 from map.wshandler import add_or_update_area, get_all_area, remove_area
 
 
