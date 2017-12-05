@@ -4,12 +4,30 @@ from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.views.generic import FormView
 
 from map.forms import MyAuthenticationForm, MyPasswordChangeForm
 from map.utils import log_time
 
 HTTP_GET = "GET"
 HTTP_POST = "POST"
+
+
+class MapIndexView(FormView):
+    template_name = "index.html"
+    form_class = MyAuthenticationForm
+    success_url = reverse_lazy("map:index")
+
+    def get_form_kwargs(self):
+        kwargs = super(MapIndexView, self).get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def form_valid(self, form):
+        """Security check complete. Log the user in."""
+        user = form.get_user()
+        login(self.request, user)
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class MapLoginView(LoginView):
@@ -29,15 +47,6 @@ class MapLoginView(LoginView):
         context = super(LoginView, self).get_context_data(**kwargs)
         context["gps"] = [120.015449, 30.2822]
         return context
-
-
-class MapIndexView(LoginView):
-    template_name = "index.html"
-    form_class = MyAuthenticationForm
-    success_url = "index.html"
-
-    def form_valid(self, form):
-        return super(MapIndexView, self).form_valid(form)
 
 
 class MapLogoutView(LogoutView):
