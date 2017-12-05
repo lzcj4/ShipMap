@@ -53,7 +53,8 @@ function addShipByBeidou(loc) {
     ship.setMap(map);
     ship.on('click', function () {
         // infoWindow.open(map, ship.getPosition());
-        getInfoWindow(loc.name, [loc.caption, loc.phone, loc.address]).open(map, ship.getPosition());
+        getInfoWindow('船名：<span style="font-size:11px;color:#F00;">' + loc.name + '</span>',
+                      [loc.caption, loc.phone, loc.address]).open(map, ship.getPosition());
     });
     var extData = {"info": loc};
     ship.setExtData(extData);
@@ -261,7 +262,7 @@ function createInfoWindow(title, content) {
     info.className = "info";
 
     //可以通过下面的方式修改自定义窗体的宽高
-    //info.style.width = "400px";
+    info.style.minWidth = "200px";
     // 定义顶部标题
     var top = document.createElement("div");
     var titleD = document.createElement("div");
