@@ -52,11 +52,13 @@ function addShipByBeidou(loc) {
     });
     ship.setMap(map);
     ship.on('click', function () {
-        infoWindow.open(map, ship.getPosition());
+        // infoWindow.open(map, ship.getPosition());
+        getInfoWindow(loc.name, [loc.caption, loc.phone, loc.address]).open(map, ship.getPosition());
     });
     var extData = {"info": loc};
     ship.setExtData(extData);
-    setShipIcon(ship);
+    ship.setTitle(loc.name);
+    ship.setIcon("http://oyjbgqiy4.bkt.clouddn.com/ship.png");
     radarShipDict.put("beidou", ship);
 }
 
@@ -83,7 +85,9 @@ function setShipIcon(ship) {
     if (checkElementIsNone(ship)) {
         return;
     }
-
+    if (!checkElementIsNone(ship.getExtData().info)) {
+        return;
+    }
     var isInArea = checkPositionInArea(ship.getPosition());
     ship.setTitle(isInArea ? "已方船只" : "未知船只");
     ship.setIcon(isInArea ? "http://oyjbgqiy4.bkt.clouddn.com/ship.png" : "http://oyjbgqiy4.bkt.clouddn.com/blackship.png");
@@ -117,7 +121,6 @@ function getShipById(id) {
     }
     return result;
 }
-
 
 
 function setRadiusChange(newRadius) {
@@ -242,6 +245,15 @@ var infoWindow = new AMap.InfoWindow({
     content: createInfoWindow(title, content.join("<br/>")),
     offset: new AMap.Pixel(16, -45)
 });
+
+function getInfoWindow(title, content) {
+    var infoWin = new AMap.InfoWindow({
+        isCustom: true, //使用自定义窗体
+        content: createInfoWindow(title, content.join("<br/>")),
+        offset: new AMap.Pixel(16, -45)
+    });
+    return infoWin;
+}
 
 //构建自定义信息窗体
 function createInfoWindow(title, content) {

@@ -5,6 +5,7 @@ import time
 import serial
 
 from map.coordTransform_utils import wgs84_to_gcj02
+from map.models import Ship
 
 
 class BDLocation:
@@ -19,7 +20,17 @@ class BDLocation:
         return "id:{0},time:{1},lng:{2},lat:{3},height:{4}".format(self.id, self.time, self.lng, self.lat, self.height)
 
     def to_json(self):
-        return self.__dict__
+        ships = Ship.objects.filter(no=self.id)
+        result = self.__dict__
+        if ships:
+            ship = ships[0]
+            result["name"] = ship.name
+            result["harbor"] = ship.harbor
+            result["caption"] = ship.caption
+            result["phone"] = ship.phone
+            result["address"] = ship.address
+
+        return result
 
 
 READ_COM = "COM5"
@@ -42,9 +53,9 @@ class BDReceiver(Thread):
         self.callback = callback
 
     def run(self):
-        # self.mock_run()
         self.is_running = True
-        self.read_serial()
+        self.mock_run()
+        # self.read_serial()
 
     def stop(self):
         self.is_running = False
