@@ -79,7 +79,7 @@ function RadarShipsDict() {
         }
     };
 
-    this.items = function (radarName, ship) {
+    this.items = function () {
         var result = [];
         var items = radarDict.getItems();
         for (var k in items) {

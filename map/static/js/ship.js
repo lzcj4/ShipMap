@@ -54,7 +54,7 @@ function addShipByBeidou(loc) {
     ship.on('click', function () {
         // infoWindow.open(map, ship.getPosition());
         getInfoWindow('船名：<span style="font-size:11px;color:#F00;">' + loc.name + '</span>',
-                      [loc.caption, loc.phone, loc.address]).open(map, ship.getPosition());
+            [loc.caption, loc.phone, loc.address]).open(map, ship.getPosition());
     });
     var extData = {"info": loc};
     ship.setExtData(extData);
@@ -178,6 +178,11 @@ function addCircle(pos, radius, id) {
         fillOpacity: 0.35,//填充透明度
     });
 
+    addCircleEvent(circle, id);
+    return circle;
+}
+
+function addCircleEvent(circle, id) {
     var extData = {};
     if (!checkElementIsNone(id)) {
         extData['id'] = id;
@@ -233,7 +238,6 @@ function addCircle(pos, radius, id) {
         checkAllShipInArea();
         $("#txtRadius").val(circle.getRadius());
     });
-    return circle;
 }
 
 var title = '哈哈<span style="font-size:11px;color:#F00;">小三贼船</span>';

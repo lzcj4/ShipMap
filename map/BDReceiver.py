@@ -4,7 +4,7 @@ import time
 
 import serial
 
-from map.coordTransform_utils import wgs84_to_gcj02
+from map.geoutil import wgs84_to_gcj02
 from map.models import Ship
 
 

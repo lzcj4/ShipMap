@@ -7,9 +7,9 @@ var map = new AMap.Map("container", {
     zoom: 13
 });
 //为地图注册click事件获取鼠标点击出的经纬度坐标
-map.on('click', function (e) {
-    $("#lnglat").val(e.lnglat.getLng() + ',' + e.lnglat.getLat());
-});
+// map.on('click', function (e) {
+//     $("#lnglat").val(e.lnglat.getLng() + ',' + e.lnglat.getLat());
+// });
 
 map.plugin('AMap.Geolocation', function () {
     var geolocation = new AMap.Geolocation({
@@ -28,7 +28,7 @@ map.plugin('AMap.Geolocation', function () {
     });
     map.addControl(geolocation);
     geolocation.getCurrentPosition(function (status, geoResult) {
-        //addCircle(geoResult.position, $("#txtRadius").val());
+        // addCircle(geoResult.position, $("#txtRadius").val());
         // circleList.push(circle);
         if (status == "complete") {
             addShipByRadar("radar_test", geoResult.position);
@@ -39,8 +39,21 @@ map.plugin('AMap.Geolocation', function () {
     });
 });
 
-AMap.plugin(['AMap.ToolBar'], function () {
-    map.addControl(new AMap.ToolBar({
-        map: map
-    }));
+map.plugin(['AMap.ToolBar'], function () {
+    map.addControl(new AMap.ToolBar({map: map}));
+});
+
+//http://lbs.amap.com/api/javascript-api/reference/plugin#AMap.MouseTool
+map.plugin(["AMap.MouseTool"], function () {
+    var mousetool = new AMap.MouseTool(map);
+    // mousetool.marker(); //使用鼠标工具，在地图上画标记点
+    mousetool.on("draw", function (ex) {
+        if (ex.type == "draw") {
+            if (ex.obj instanceof AMap.Circle) {
+                addCircleEvent(ex.obj, null);
+                mousetool.close(false);
+            }
+        }
+    })
+    mousetool.circle();
 });
